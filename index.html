@@ -250,6 +250,9 @@ footer{
 .f-logo{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:10px}
 .f-logo img{width:34px;height:34px;border-radius:8px;object-fit:cover}
 .f-copy{font-size:11px;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.6}
+.f-dev{font-size:11px;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.6}
+.f-dev a{color:var(--or);text-decoration:none;font-weight:600;transition:all .2s}
+.f-dev a:hover{color:#fff;text-shadow:0 0 8px var(--or)}
 .f-links{display:flex;justify-content:center;gap:20px;margin-bottom:18px}
 .f-links a{font-size:13px;color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;transition:color .15s}
 .f-links a:hover{color:var(--or)}
@@ -708,6 +711,7 @@ textarea.finp{resize:vertical;min-height:76px}
     معلم الشاورما
   </div>
   <div class="f-copy">جميع الحقوق محفوظة © معلم الشاورما 2025</div>
+  <div class="f-dev">تطوير: <a href="https://wa.me/9647712343468" target="_blank">Synapse.dev</a></div>
   <div class="f-links">
     <a href="#">فيسبوك</a>
     <a href="#">انستقرام</a>
@@ -934,6 +938,56 @@ function renderAll(){
     const subEl = document.getElementById('hero-sub');
     if (titleEl && window.SITE_DATA.hero.title) titleEl.textContent = window.SITE_DATA.hero.title;
     if (subEl && window.SITE_DATA.hero.sub) subEl.innerHTML = window.SITE_DATA.hero.sub;
+  }
+  
+  // Render social media links from admin panel
+  if (window.SITE_DATA?.identity) {
+    const fLinks = document.querySelector('.f-links');
+    if (fLinks) {
+      fLinks.innerHTML = '';
+      
+      // Instagram
+      if (window.SITE_DATA.identity.ig) {
+        const igLink = document.createElement('a');
+        igLink.href = window.SITE_DATA.identity.ig.startsWith('http') 
+          ? window.SITE_DATA.identity.ig 
+          : `https://instagram.com/${window.SITE_DATA.identity.ig.replace('@', '')}`;
+        igLink.target = '_blank';
+        igLink.textContent = 'انستقرام';
+        fLinks.appendChild(igLink);
+      }
+      
+      // Facebook
+      if (window.SITE_DATA.identity.fb) {
+        const fbLink = document.createElement('a');
+        fbLink.href = window.SITE_DATA.identity.fb;
+        fbLink.target = '_blank';
+        fbLink.textContent = 'فيسبوك';
+        fLinks.appendChild(fbLink);
+      }
+      
+      // TikTok
+      if (window.SITE_DATA.identity.tt) {
+        const ttLink = document.createElement('a');
+        ttLink.href = window.SITE_DATA.identity.tt.startsWith('http') 
+          ? window.SITE_DATA.identity.tt 
+          : `https://tiktok.com/@${window.SITE_DATA.identity.tt.replace('@', '')}`;
+        ttLink.target = '_blank';
+        ttLink.textContent = 'تيك توك';
+        fLinks.appendChild(ttLink);
+      }
+      
+      // Snapchat
+      if (window.SITE_DATA.identity.snap) {
+        const snapLink = document.createElement('a');
+        snapLink.href = window.SITE_DATA.identity.snap.startsWith('http') 
+          ? window.SITE_DATA.identity.snap 
+          : `https://snapchat.com/add/${window.SITE_DATA.identity.snap.replace('@', '')}`;
+        snapLink.target = '_blank';
+        snapLink.textContent = 'سناب شات';
+        fLinks.appendChild(snapLink);
+      }
+    }
   }
   
   // Render menu
