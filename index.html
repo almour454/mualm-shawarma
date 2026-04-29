@@ -1407,6 +1407,29 @@ function markDone(id){const o=orders.find(x=>x.id===id);if(o)o.status='done';bui
 
 setDel('delivery');
 populateDeliveryZones();
+
+// ── AUTO-OPEN MENU FROM URL PARAMETER ──
+// Check if URL has ?branch=xxx parameter and auto-open menu for that branch
+(function checkBranchUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const branchParam = urlParams.get('branch');
+  
+  if (branchParam) {
+    // Map branch codes to full Arabic names
+    const branchMap = {
+      'karbala': 'كربلاء',
+      'hindiya': 'الهنديه', 
+      'babel': 'بابل'
+    };
+    
+    const branchName = branchMap[branchParam.toLowerCase()] || branchParam;
+    
+    // Wait a bit for page to fully load, then open menu
+    setTimeout(() => {
+      openMenu(branchName);
+    }, 500);
+  }
+})();
 </script>
 <!-- Firebase CDN -->
 <script type="module">
