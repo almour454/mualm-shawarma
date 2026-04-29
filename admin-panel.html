@@ -234,7 +234,7 @@ tr:hover td{background:#fafafa}
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2l5 3 5-3 5 3"/></svg>الأقسام
     </div>
     <div class="sb-section">الفروع والتوصيل</div>
-    <div class="sb-item" onclick="showPanel('branches')">
+    <div class="sb-item" id="sb-branches" onclick="showPanel('branches')">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>الفروع
     </div>
     <div class="sb-item" onclick="showPanel('delivery')">
@@ -645,7 +645,11 @@ tr:hover td{background:#fafafa}
     <div class="form-group">
       <div class="toggle-wrap" style="margin-top:24px">
         <label class="toggle"><input type="checkbox" id="mi-featured"><div class="toggle-slider"></div></label>
-        <span style="font-size:12px;font-weight:700">عنصر مميز (بطاقة كبيرة)</span>
+        <span style="font-size:12px;font-weight:700">عنصر مميز ⭐</span>
+      </div>
+      <div class="toggle-wrap" style="margin-top:12px">
+        <label class="toggle"><input type="checkbox" id="mi-hidden"><div class="toggle-slider"></div></label>
+        <span style="font-size:12px;font-weight:700">إخفاء العنصر 🚫</span>
       </div>
     </div></div>
     <div style="margin-bottom:12px">
@@ -799,37 +803,67 @@ let DATA = {
   },
   menuData:{
     'شاورما دجاج':{emoji:'🥙', items:[
-      {name:'شاورما دجاج عادية', desc:'خبز + دجاج مشوي + خضار طازجة + صلصة المعلم', price:4500, ft:true, img:'', addons:[{name:'صلصة حارة إضافية',price:500},{name:'جبنة إضافية',price:1000},{name:'مايونيز إضافي',price:500}]},
-      {name:'شاورما دجاج مشكلة', desc:'', price:5500, ft:false, img:'', addons:[]},
-      {name:'شاورما كريمي دجاج', desc:'', price:5000, ft:false, img:'', addons:[{name:'صلصة ثوم إضافية',price:500}]},
-      {name:'شاورما باربيكيو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
+      {name:'شاورما عربي', desc:'شاورما عربي', price:6000, ft:true, img:'', hidden:false, addons:[{name:'ماغنوم',price:500},{name:'ثوميه',price:500}]},
+      {name:'صاح شاورما دجاج', desc:'', price:3500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صاح دجاج بالجبن', desc:'', price:5000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صمون فرنسي شاورما دجاج', desc:'', price:5000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'وجبة دجاج اكسترا جبن', desc:'صاح دجاج مقطع · ثومية · فطر', price:8000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'وجبة بانيه دجاج', desc:'', price:7500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'وجبة سوبر شاورما عربي', desc:'', price:8500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'شاورما دجاج فرط اكسترا', desc:'', price:8000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'ربع كيلو شاورما دجاج', desc:'', price:7500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'نص كيلو شاورما دجاج', desc:'', price:14000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'كيلو شاورما دجاج', desc:'', price:25000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صبينة شاورما دجاج', desc:'4 صاح دجاج مقطع · فطر · ثومية · مخلل', price:13500, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'شاورما لحم':{emoji:'🥩', items:[
-      {name:'شاورما لحم عادية', desc:'خبز + لحم مشوي + بهارات المعلم السرية', price:6000, ft:true, img:'', addons:[{name:'جبنة إضافية',price:1000},{name:'صلصة حارة',price:500}]},
-      {name:'شاورما لحم مشكلة', desc:'', price:7000, ft:false, img:'', addons:[]},
+      {name:'صاح فرنسي لحم', desc:'', price:6000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'وجبة صاح عربي لحم', desc:'', price:6500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صاح لحم', desc:'', price:6000, ft:true, img:'', hidden:false, addons:[]},
+      {name:'وجبة صاح اكسترا لحم بالجبن', desc:'', price:8000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'شاورما لحم فرط اكسترا', desc:'', price:12500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'ربع كيلو شاورما لحم', desc:'', price:10000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'نص كيلو شاورما لحم', desc:'', price:19000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'كيلو شاورما لحم', desc:'', price:35000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صبينة شاورما مكس', desc:'2 صاح لحم · 2 صاح دجاج · فطر · ثومية · طرطور', price:16000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صبينة شاورما لحم', desc:'4 صاح لحم شاورما · فطر · طرطور · مخلل', price:17000, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'برغر':{emoji:'🍔', items:[
-      {name:'شكاغو برغر مدخن', desc:'', price:65000, ft:false, img:'', addons:[]},
-      {name:'تشيز برغر ماتروم', desc:'', price:6500, ft:false, img:'', addons:[]},
-      {name:'برغر ماغنوم', desc:'', price:7000, ft:false, img:'', addons:[]},
-      {name:'برغر المعلم', desc:'250 غم لحم تندر · بندورة · مايونيز · جبن المعلم', price:9000, ft:false, img:'', addons:[{name:'إضافة بيضة',price:500},{name:'صلصة BBQ',price:1000}]},
+      {name:'برغر كلاسك', desc:'برغر لحم · ثومية · طكتة · كتشب', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر دجاج تندر', desc:'دجاج مقلي · مايونيز · كوسة · جبن شيدر', price:6000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر زنجر دجاج', desc:'2 دجاج مقلي · صوص مكسيكو · جبن شيدر', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'تشيز برغر لحم', desc:'', price:6000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر شاورما لحم', desc:'', price:6000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'شكاغو برغر مدخن', desc:'', price:6500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'تشيز برغر ماتروم', desc:'', price:6500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر ماغنوم', desc:'', price:7000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'فرنشي فرايز برغر', desc:'', price:7000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر المعلم', desc:'250 غم لحم تندر · بندورة · مايونيز · جبن المعلم', price:9000, ft:true, img:'', hidden:false, addons:[{name:'إضافة بيضة',price:500},{name:'صلصة BBQ',price:1000}]},
+      {name:'برغر شاورما دجاج', desc:'', price:5000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر دجاج فلشمر', desc:'', price:5000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر كلاسك كرسبي', desc:'', price:6500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'برغر ماستر', desc:'', price:8000, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'سندويشات المعلم':{emoji:'🥪', items:[
-      {name:'سندويش فرانسيسكو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
-      {name:'سندويش مكسيكانو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
-      {name:'سندويش المعلم', desc:'', price:5500, ft:false, img:'', addons:[]},
+      {name:'سندويش فرانسيسكو دجاج', desc:'', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'سندويش مكسيكانو دجاج', desc:'', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'سندويش فاهتا دجاج', desc:'', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'سندويش المعلم', desc:'', price:5500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'فاهتا لحم', desc:'', price:6000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'فيلادلفيا لحم', desc:'', price:7000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'صاح كاب', desc:'', price:6000, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'بيتزا المعلم':{emoji:'🍕', items:[
-      {name:'بيتزا المعلم كبير', desc:'', price:12000, ft:false, img:'', addons:[]},
-      {name:'بيتزا المعلم وسط', desc:'', price:8000, ft:false, img:'', addons:[]},
+      {name:'بيتزا المعلم كبير', desc:'', price:12000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'بيتزا المعلم وسط', desc:'', price:8000, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'ريزو المعلم':{emoji:'🍚', items:[
-      {name:'ريزو دجاج', desc:'', price:7000, ft:false, img:'', addons:[]},
-      {name:'ريزو لحم', desc:'', price:8000, ft:false, img:'', addons:[]},
+      {name:'ريزو دجاج', desc:'', price:7000, ft:false, img:'', hidden:false, addons:[]},
+      {name:'ريزو لحم', desc:'', price:8000, ft:false, img:'', hidden:false, addons:[]},
     ]},
     'المقبلات':{emoji:'🍟', items:[
-      {name:'فريز مقلية', desc:'', price:2500, ft:false, img:'', addons:[]},
-      {name:'مزة مشكلة', desc:'', price:4000, ft:false, img:'', addons:[]},
+      {name:'فريز مقلية', desc:'', price:2500, ft:false, img:'', hidden:false, addons:[]},
+      {name:'مزة مشكلة', desc:'', price:4000, ft:false, img:'', hidden:false, addons:[]},
     ]},
   },
   discount:{code:'MAALIM10', pct:10, active:true},
@@ -843,13 +877,15 @@ let currentMenuCat = '';
 // ══════════════════════════════════════
 // LOGIN
 // ══════════════════════════════════════
-const ADMIN_CREDS = {admin:'admin123', kitchen:'1234'};
+const ADMIN_CREDS = {admin:'admin123', kitchen:'1234', owner:'maalim2026'};
+let isOwner = false;
 function doAdminLogin(){
   const u=document.getElementById('li-user').value.trim();
   const p=document.getElementById('li-pass').value;
   const err=document.getElementById('li-err');
   if(ADMIN_CREDS[u]&&ADMIN_CREDS[u]===p){
     err.style.display='none';
+    isOwner = (u === 'owner'); // Set owner flag
     document.getElementById('login-screen').style.display='none';
     document.getElementById('admin-root').style.display='flex';
     initAdmin();
@@ -868,6 +904,15 @@ function logout(){
 // INIT
 // ══════════════════════════════════════
 function initAdmin(){
+  // Gray out branches panel for non-owners
+  if(!isOwner){
+    const branchBtn = document.getElementById('sb-branches');
+    if(branchBtn){
+      branchBtn.style.opacity = '0.4';
+      branchBtn.style.cursor = 'not-allowed';
+      branchBtn.innerHTML += ' <span style="margin-right:auto;font-size:10px">🔒</span>';
+    }
+  }
   renderDashboard();
   renderTicker();
   renderFeatures();
@@ -883,6 +928,11 @@ function initAdmin(){
 }
 
 function showPanel(name){
+  // Restrict branches to owner only
+  if(name==='branches' && !isOwner){
+    toast('❌ هذا القسم متاح للمالك فقط');
+    return;
+  }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -1042,8 +1092,9 @@ function renderMenu(){
   const items=DATA.menuData[currentMenuCat].items;
   if(!items.length){cont.innerHTML='<div class="card" style="text-align:center;color:var(--muted);padding:40px">لا توجد عناصر في هذا القسم</div>';return;}
   cont.innerHTML=`<div class="menu-items-grid">${items.map((item,i)=>`
-    <div class="mitem-card">
+    <div class="mitem-card${item.hidden?' hidden-item':''}" style="${item.hidden?'opacity:0.5;':''}">
       ${item.ft?'<div class="mitem-badge">مميز ⭐</div>':''}
+      ${item.hidden?'<div class="mitem-badge" style="background:#e53e3e;top:32px">مخفي 🚫</div>':''}
       ${item.img
         ?`<img src="${item.img}" onerror="this.style.display='none'">`
         :`<div class="mitem-emoji-ph">${DATA.menuData[currentMenuCat].emoji}</div>`}
@@ -1068,6 +1119,7 @@ function openAddItem(){
   document.getElementById('mi-img').value='';
   document.getElementById('mi-emoji').value=DATA.menuData[currentMenuCat]?.emoji||'🍽️';
   document.getElementById('mi-featured').checked=false;
+  document.getElementById('mi-hidden').checked=false;
   document.getElementById('addons-editor').innerHTML='';
   openModal('modal-item');
 }
@@ -1082,6 +1134,7 @@ function openEditItem(cat,idx){
   document.getElementById('mi-img').value=item.img||'';
   document.getElementById('mi-emoji').value=DATA.menuData[cat].emoji;
   document.getElementById('mi-featured').checked=!!item.ft;
+  document.getElementById('mi-hidden').checked=!!item.hidden;
   // addons
   const ae=document.getElementById('addons-editor');
   ae.innerHTML='';
@@ -1110,7 +1163,7 @@ function saveItem(){
     const p=parseInt(row.querySelector('.ar-price-inp').value)||0;
     if(n) addons.push({name:n,price:p});
   });
-  const item={name,price:parseInt(document.getElementById('mi-price').value)||0,desc:document.getElementById('mi-desc').value.trim(),img:document.getElementById('mi-img').value.trim(),ft:document.getElementById('mi-featured').checked,addons};
+  const item={name,price:parseInt(document.getElementById('mi-price').value)||0,desc:document.getElementById('mi-desc').value.trim(),img:document.getElementById('mi-img').value.trim(),ft:document.getElementById('mi-featured').checked,hidden:document.getElementById('mi-hidden').checked,addons};
   if(idx>=0) DATA.menuData[cat].items[idx]=item;
   else DATA.menuData[cat].items.push(item);
   closeModal('modal-item');

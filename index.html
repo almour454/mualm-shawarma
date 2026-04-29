@@ -996,8 +996,8 @@ function buildMenu(){
     const grid=document.createElement('div');
     grid.className='igrid';
 
-    // Add items to grid
-    items.forEach((item,j)=>{
+    // Add items to grid (skip hidden items)
+    items.filter(item => !item.hidden).forEach((item,j)=>{
       const em=EMOJIS[cat]||'🍽️';
       
       const el=document.createElement('div');
