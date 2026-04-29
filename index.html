@@ -790,7 +790,14 @@ textarea.finp{resize:vertical;min-height:76px}
       </div>
       <div class="fgrp"><label class="flbl">الاسم <span>*</span></label><input class="finp" id="f-name" placeholder="أدخل اسمك"></div>
       <div class="fgrp"><label class="flbl">رقم الهاتف <span>*</span></label><input class="finp" id="f-phone" placeholder="07XXXXXXXXX"></div>
-      <div class="fgrp" id="addr-grp"><label class="flbl">عنوان التوصيل <span>*</span></label><textarea class="finp" id="f-addr" placeholder="أدخل عنوان التوصيل"></textarea></div>
+      <div class="fgrp" id="zone-grp">
+        <label class="flbl">منطقة التوصيل <span>*</span></label>
+        <select class="finp" id="f-zone" onchange="updateDeliveryFee()">
+          <option value="">اختر منطقتك...</option>
+        </select>
+        <div style="font-size:12px;color:var(--gr);margin-top:6px" id="zone-fee-info"></div>
+      </div>
+      <div class="fgrp" id="addr-grp"><label class="flbl">عنوان التوصيل التفصيلي <span>*</span></label><textarea class="finp" id="f-addr" placeholder="أدخل الشارع، رقم البيت، علامة مميزة"></textarea></div>
       <div class="fgrp"><label class="flbl">كود الخصم</label><div class="disc-row"><input class="finp" id="f-disc" placeholder="أدخل كود الخصم"><button class="apply-btn">تطبيق</button></div></div>
       <div class="fgrp"><label class="flbl">ملاحظات إضافية</label><textarea class="finp" id="f-notes" placeholder="أي ملاحظات خاصة بالطلب"></textarea></div>
       <button class="confirm-btn" onclick="confirmOrder()">تأكيد الطلب</button>
@@ -931,6 +938,9 @@ function renderAll(){
   
   // Render menu
   if (typeof buildMenu === 'function') buildMenu();
+  
+  // Populate delivery zones
+  if (typeof populateDeliveryZones === 'function') populateDeliveryZones();
   
   console.log('✅ Rendered all dynamic content from Firebase');
 }
@@ -1118,7 +1128,7 @@ function buildCo(){
       <div class="coidet">IQD ${item.base.toLocaleString()} × ${item.qty}${adds?'<br>'+adds:''}</div></div>`;
     ci.appendChild(r);
   });
-  const fee=delMode==='delivery'?FEE:0;
+  const fee = getCurrentDeliveryFee();
   document.getElementById('co-sub').textContent=fmt(sub);
   document.getElementById('co-fee').textContent=fmt(fee);
   document.getElementById('co-fin').textContent=fmt(sub+fee);
@@ -1127,24 +1137,105 @@ function setDel(m){
   delMode=m;
   document.getElementById('opt-pick').classList.toggle('active',m==='pickup');
   document.getElementById('opt-del').classList.toggle('active',m==='delivery');
-  document.getElementById('addr-grp').style.display=m==='delivery'?'block':'none';
+  const zoneGrp = document.getElementById('zone-grp');
+  const addrGrp = document.getElementById('addr-grp');
+  if(zoneGrp) zoneGrp.style.display = m==='delivery'?'block':'none';
+  if(addrGrp) addrGrp.style.display = m==='delivery'?'block':'none';
   buildCo();
 }
+
+// Populate delivery zones from Firebase settings
+function populateDeliveryZones(){
+  const zoneSelect = document.getElementById('f-zone');
+  if(!zoneSelect) return;
+  
+  const deliverySettings = window.SITE_DATA?.delivery || {
+    zones: [
+      {name:'كربلاء المركز', fee:2000},
+      {name:'الهندية', fee:3000},
+      {name:'بابل / الحلة', fee:5000}
+    ]
+  };
+  
+  // Clear existing options except first
+  zoneSelect.innerHTML = '<option value="">اختر منطقتك...</option>';
+  
+  // Add zones
+  deliverySettings.zones.forEach((zone, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${zone.name} - ${fmt(zone.fee)}`;
+    opt.dataset.fee = zone.fee;
+    opt.dataset.name = zone.name;
+    zoneSelect.appendChild(opt);
+  });
+}
+
+// Update delivery fee based on selected zone
+function updateDeliveryFee(){
+  const zoneSelect = document.getElementById('f-zone');
+  const feeInfo = document.getElementById('zone-fee-info');
+  
+  if(!zoneSelect || zoneSelect.value === ''){
+    if(feeInfo) feeInfo.textContent = '';
+    buildCo();
+    return;
+  }
+  
+  const selectedOption = zoneSelect.options[zoneSelect.selectedIndex];
+  const fee = parseInt(selectedOption.dataset.fee) || 2000;
+  
+  if(feeInfo){
+    feeInfo.textContent = `📍 رسوم التوصيل: ${fmt(fee)}`;
+    feeInfo.style.color = 'var(--or)';
+    feeInfo.style.fontWeight = '700';
+  }
+  
+  buildCo();
+}
+
+// Get current delivery fee
+function getCurrentDeliveryFee(){
+  if(delMode !== 'delivery') return 0;
+  
+  const zoneSelect = document.getElementById('f-zone');
+  if(!zoneSelect || zoneSelect.value === '') return 2000; // Default fee
+  
+  const selectedOption = zoneSelect.options[zoneSelect.selectedIndex];
+  return parseInt(selectedOption.dataset.fee) || 2000;
+}
+
 function confirmOrder(){
   const name=document.getElementById('f-name').value.trim();
   const phone=document.getElementById('f-phone').value.trim();
   if(!name||!phone){alert('الرجاء إدخال الاسم ورقم الهاتف');return;}
-  const fee=delMode==='delivery'?FEE:0;
+  
+  // Validate zone selection for delivery
+  const zoneSelect = document.getElementById('f-zone');
+  if(delMode === 'delivery' && (!zoneSelect || zoneSelect.value === '')){
+    alert('الرجاء اختيار منطقة التوصيل');
+    return;
+  }
+  
+  const fee = getCurrentDeliveryFee();
   const sub=cart.reduce((s,i)=>s+i.total,0);
   const addr=document.getElementById('f-addr').value.trim();
   const notes=document.getElementById('f-notes').value.trim();
+  
+  // Get zone name if delivery
+  let zoneName = '';
+  if(delMode === 'delivery' && zoneSelect && zoneSelect.value !== ''){
+    const selectedOption = zoneSelect.options[zoneSelect.selectedIndex];
+    zoneName = selectedOption.dataset.name || '';
+  }
   
   // Build order object
   const order={
     id:oNum++,
     name,
     phone,
-    address:addr,
+    address: delMode === 'delivery' ? `${zoneName}${addr ? ' - ' + addr : ''}` : '',
+    zone: zoneName,
     notes,
     delivery:delMode,
     items:[...cart],
@@ -1261,6 +1352,7 @@ function markDone(id){const o=orders.find(x=>x.id===id);if(o)o.status='done';bui
 })();
 
 setDel('delivery');
+populateDeliveryZones();
 </script>
 <!-- Firebase CDN -->
 <script type="module">
