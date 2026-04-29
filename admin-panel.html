@@ -1112,9 +1112,28 @@ function saveItem(){
   closeModal('modal-item');
   renderMenu();
   renderDashboard();
-  toast('✅ تم حفظ العنصر');
+  
+  // Save to Firestore
+  const itemId = cat + '_' + name.replace(/\s+/g, '_');
+  const itemData = { ...item, category: cat, emoji: DATA.menuData[cat].emoji };
+  if(typeof window.saveMenuItemToFirebase === 'function') {
+    window.saveMenuItemToFirebase(itemId, itemData);
+  }
 }
-function deleteItem(cat,idx){if(confirm('حذف هذا العنصر نهائياً؟')){DATA.menuData[cat].items.splice(idx,1);renderMenu();renderDashboard();toast('🗑️ تم الحذف');}}
+function deleteItem(cat,idx){
+  if(confirm('حذف هذا العنصر نهائياً؟')){
+    const itemName = DATA.menuData[cat].items[idx].name;
+    DATA.menuData[cat].items.splice(idx,1);
+    renderMenu();
+    renderDashboard();
+    
+    // Delete from Firestore
+    const itemId = cat + '_' + itemName.replace(/\s+/g, '_');
+    if(typeof window.deleteMenuItemFromFirebase === 'function') {
+      window.deleteMenuItemFromFirebase(itemId);
+    }
+  }
+}
 
 // ══════════════════════════════════════
 // CATEGORIES
