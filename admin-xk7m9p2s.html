@@ -382,9 +382,9 @@ tr:hover td{background:#fafafa}
       <div class="page-title">📍 إدارة الفروع</div>
       <div class="page-sub">عدّل بيانات الفروع والخرائط والروابط</div>
     </div>
-    <button class="btn btn-orange" onclick="openAddBranch()">+ فرع جديد</button>
+    <button class="btn btn-orange" id="add-branch-btn" onclick="openAddBranch()">+ فرع جديد</button>
   </div>
-  <div class="card" style="background:#fffbf0;border-color:#f6d860">
+  <div class="card" id="branch-warning-card" style="background:#fffbf0;border-color:#f6d860">
     <div style="font-size:13px;font-weight:700;color:#92620a;display:flex;align-items:center;gap:8px">
       🔒 <span>ميزة إضافة الفروع — يُنصح بالتواصل مع المطور لإضافة فروع جديدة وضمان الإعداد الصحيح</span>
     </div>
@@ -904,15 +904,14 @@ function logout(){
 // INIT
 // ══════════════════════════════════════
 function initAdmin(){
-  // Gray out branches panel for non-owners
+  // Hide Add Branch button for non-owners
   if(!isOwner){
-    const branchBtn = document.getElementById('sb-branches');
-    if(branchBtn){
-      branchBtn.style.opacity = '0.4';
-      branchBtn.style.cursor = 'not-allowed';
-      branchBtn.innerHTML += ' <span style="margin-right:auto;font-size:10px">🔒</span>';
-    }
+    const addBtn = document.getElementById('add-branch-btn');
+    const warningCard = document.getElementById('branch-warning-card');
+    if(addBtn) addBtn.style.display = 'none';
+    if(warningCard) warningCard.style.display = 'none';
   }
+  
   renderDashboard();
   renderTicker();
   renderFeatures();
@@ -928,11 +927,6 @@ function initAdmin(){
 }
 
 function showPanel(name){
-  // Restrict branches to owner only
-  if(name==='branches' && !isOwner){
-    toast('❌ هذا القسم متاح للمالك فقط');
-    return;
-  }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -1267,7 +1261,7 @@ function renderBranches(){
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-sm btn-ghost" onclick="openEditBranch(${i})">✏️ تعديل</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteBranch(${i})">🗑️</button>
+        ${isOwner ? `<button class="btn btn-sm btn-danger" onclick="deleteBranch(${i})">🗑️</button>` : ''}
       </div>
     </div>`).join('');
 }
