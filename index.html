@@ -909,16 +909,7 @@ const fmt=n=>'IQD '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFra
 // emoji map for overlay
 const EMOJIS={"شاورما دجاج":"🥙","شاورما لحم":"🥩","برغر":"🍔","سندويشات المعلم":"🥪","بيتزا المعلم":"🍕","ريزو المعلم":"🍚","المقبلات":"🍟"};
 
-function getMenuData(){
-  return window.SITE_DATA?.menu || MD;
-}
-function getMenuCats(){
-  return Object.keys(getMenuData());
-}
-function getMenuItem(cat, idx){
-  const catData = getMenuData()[cat];
-  return catData?.items?.[idx] || null;
-}
+// Refresh menu when Firestore data loads
 function renderAll(){
   if (typeof buildMenu === 'function') buildMenu();
 }
@@ -934,10 +925,16 @@ function closeMenu(){document.getElementById('menu-ov').classList.remove('open')
 function closeMenuOv(e){if(e.target===document.getElementById('menu-ov'))closeMenu();}
 
 function buildMenu(){
-  const menuData = getMenuData();
-  const cats = getMenuCats();
-  const cb=document.getElementById('cats-bar'),ms=document.getElementById('m-scroll');
-  cb.innerHTML='';ms.innerHTML='';
+  // Use Firestore data if available, otherwise use local default MD
+  const menuData = (window.SITE_DATA?.menu) ? window.SITE_DATA.menu : MD;
+  const cats = Object.keys(menuData || {});
+  
+  const cb=document.getElementById('cats-bar');
+  const ms=document.getElementById('m-scroll');
+  if(!cb || !ms) return;
+  
+  cb.innerHTML='';
+  ms.innerHTML='';
 
   // ALL pill
   const allPill=document.createElement('button');
@@ -950,14 +947,17 @@ function buildMenu(){
   };
   cb.appendChild(allPill);
 
+  // Build category pills and sections
   cats.forEach((cat,i)=>{
     const catData=menuData[cat];
-    const items=catData?.items || [];
+    if(!catData) return;
+    
+    const items=catData.items || [];
 
-    // pill
+    // Category pill
     const pill=document.createElement('button');
     pill.className='cat-pill';
-    pill.innerHTML=catData.emoji+' '+cat;
+    pill.innerHTML=(catData.emoji||'🍽️')+' '+cat;
     pill.onclick=()=>{
       document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
       pill.classList.add('active');
@@ -965,78 +965,73 @@ function buildMenu(){
     };
     cb.appendChild(pill);
 
-    if(!items.length) return;
+    if(!items||!items.length) return;
+    
+    // Category section
     const sec=document.createElement('div');
-    sec.className='cat-sec';sec.id='s'+i;
-    sec.innerHTML=`<div class="cat-ttl"><span class="cat-ttl-emoji">${catData.emoji}</span>${cat}</div>`;
-    const grid=document.createElement('div');grid.className='igrid';
+    sec.className='cat-sec';
+    sec.id='s'+i;
+    sec.innerHTML=`<div class="cat-ttl"><span class="cat-ttl-emoji">${catData.emoji||'🍽️'}</span>${cat}</div>`;
+    const grid=document.createElement('div');
+    grid.className='igrid';
 
+    // Add items to grid
     items.forEach((item,j)=>{
       const em=EMOJIS[cat]||'🍽️';
-      if(item.ft&&j===0){
-        const el=document.createElement('div');
-        el.className='ft-wrap';
-        el.innerHTML=`
-          <div class="ft-img">
-            <div class="food-img ${item.bg||'food-img-default'}" style="width:100%;height:100%">
-              <div class="food-emoji-overlay">${em}</div>
-            </div>
+      
+      const el=document.createElement('div');
+      el.className='mitem';
+      el.innerHTML=`
+        <div class="mitem-photo">
+          <div class="food-img ${item.bg||'food-img-default'}" style="width:100%;height:100%">
+            <div class="food-emoji-overlay" style="font-size:22px">${em}</div>
           </div>
-          <div class="ft-body">
-            <div>
-              <div class="iname" style="font-size:14px;margin-bottom:4px">${item.name}</div>
-              ${item.desc?`<div class="idesc">${item.desc}</div>`:''}
-            </div>
-            <div class="ifoot">
-              <div class="iprice">${fmt(item.price)}</div>
-              <button class="addbtn" onclick="event.stopPropagation();openItem('${cat}',${j})">+</button>
-            </div>
-          </div>`;
-        el.onclick=()=>openItem(cat,j);
-        grid.appendChild(el);
-      } else {
-        const el=document.createElement('div');
-        el.className='mitem';
-        el.innerHTML=`
-          <div class="mitem-photo">
-            <div class="food-img ${item.bg||'food-img-default'}" style="width:100%;height:100%">
-              <div class="food-emoji-overlay" style="font-size:22px">${em}</div>
-            </div>
+        </div>
+        <div class="ibody">
+          <div class="iname">${item.name}</div>
+          ${item.desc?`<div class="idesc">${item.desc}</div>`:''}
+          <div class="ifoot">
+            <div class="iprice">${fmt(item.price)}</div>
+            <button class="addbtn" onclick="event.stopPropagation();openItem('${cat}',${j})">+</button>
           </div>
-          <div class="ibody">
-            <div class="iname">${item.name}</div>
-            ${item.desc?`<div class="idesc">${item.desc}</div>`:''}
-            <div class="ifoot">
-              <div class="iprice">${fmt(item.price)}</div>
-              <button class="addbtn" onclick="event.stopPropagation();openItem('${cat}',${j})">+</button>
-            </div>
-          </div>`;
-        el.onclick=()=>openItem(cat,j);
-        grid.appendChild(el);
-      }
+        </div>`;
+      el.onclick=()=>openItem(cat,j);
+      grid.appendChild(el);
     });
-    sec.appendChild(grid);ms.appendChild(sec);
+    
+    sec.appendChild(grid);
+    ms.appendChild(sec);
   });
 
-  // Update active pill on scroll
+  // Scroll detection for active pill
   ms.addEventListener('scroll',()=>{
     let activeIdx=-1;
     cats.forEach((_,i)=>{
       const el=document.getElementById('s'+i);
-      if(el&&el.getBoundingClientRect().top-ms.getBoundingClientRect().top<80) activeIdx=i;
+      if(el && el.getBoundingClientRect().top - ms.getBoundingClientRect().top < 80) {
+        activeIdx = i;
+      }
     });
     document.querySelectorAll('.cat-pill').forEach((p,pi)=>{
-      p.classList.toggle('active',pi===activeIdx+1);
+      p.classList.toggle('active', pi === activeIdx+1);
     });
-    if(activeIdx===-1) document.querySelectorAll('.cat-pill')[0]?.classList.add('active');
+    if(activeIdx===-1) {
+      document.querySelectorAll('.cat-pill')[0]?.classList.add('active');
+    }
   });
 }
 
+
 // ── ITEM SHEET ──
 function openItem(cat,idx){
-  const item = getMenuItem(cat, idx);
-  if(!item) return;
-  curItem={...item,cat,idx};curQty=1;curAddons=[];
+  const menuData = (window.SITE_DATA?.menu) ? window.SITE_DATA.menu : MD;
+  const catData = menuData[cat];
+  if(!catData || !catData.items || !catData.items[idx]) return;
+  
+  const item = catData.items[idx];
+  curItem={...item,cat,idx};
+  curQty=1;
+  curAddons=[];
   document.getElementById('sh-title').textContent=curItem.name;
   document.getElementById('sh-sub').textContent=curItem.desc||curItem.name;
   const ab=document.getElementById('sh-addons'),al=document.getElementById('sh-addon-list');
@@ -1222,10 +1217,27 @@ setDel('delivery');
   // Real-time listener for Menu
   onSnapshot(menuCol, (snap) => {
     const menuData = {};
-    snap.forEach(d => menuData[d.id] = d.data());
-    window.SITE_DATA = window.SITE_DATA || {};
-    window.SITE_DATA.menu = menuData;
-    if (typeof renderAll === 'function') renderAll();
+    snap.forEach(d => {
+      const itemData = d.data();
+      const category = itemData.category || itemData.cat || '🍽️ أخرى';
+      if (!menuData[category]) {
+        menuData[category] = { emoji: itemData.emoji || '🍽️', items: [] };
+      }
+      menuData[category].items.push({
+        id: d.id,
+        name: itemData.name,
+        desc: itemData.desc,
+        price: itemData.price,
+        ft: itemData.ft,
+        bg: itemData.bg,
+        addons: itemData.addons || []
+      });
+    });
+    if (Object.keys(menuData).length > 0) {
+      window.SITE_DATA = window.SITE_DATA || {};
+      window.SITE_DATA.menu = menuData;
+      if (typeof renderAll === 'function') renderAll();
+    }
   });
 
   // Expose global function to submit orders to Firestore
