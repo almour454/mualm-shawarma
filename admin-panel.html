@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم — معلم الشاورما</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --or:#E8521A;--or2:#c94410;--gr:#1a5c3a;--gr2:#134228;
+  --bg:#f7f3ee;--white:#fff;--text:#1a1a1a;--muted:#888;
+  --light:#f0ebe0;--border:#e8e0d4;--danger:#e53e3e;--success:#38a169;
+  --rad:14px;--rad-sm:9px;--shadow:0 4px 20px rgba(0,0,0,.08);
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
+img{display:block;max-width:100%}
+/* ── LOGIN ── */
+#login-screen{
+  position:fixed;inset:0;background:linear-gradient(145deg,var(--gr2),var(--gr));
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+}
+.login-card{background:#fff;border-radius:20px;padding:40px 36px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center}
+.login-logo{width:80px;height:80px;margin:0 auto 16px;border-radius:16px;overflow:hidden}
+.login-logo img{width:100%;height:100%;object-fit:cover}
+.login-title{font-size:20px;font-weight:900;color:var(--gr2);margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:24px}
+.login-field{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--rad-sm);font-family:'Cairo',sans-serif;font-size:14px;margin-bottom:12px;outline:none;transition:border .2s}
+.login-field:focus{border-color:var(--gr)}
+.login-btn{width:100%;padding:13px;background:var(--gr);color:#fff;border:none;border-radius:var(--rad-sm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s}
+.login-btn:hover{background:var(--gr2)}
+.login-err{color:var(--danger);font-size:12px;margin-top:8px;display:none}
+/* ── SIDEBAR ── */
+#admin-root{display:none;min-height:100vh}
+.sidebar{
+  position:fixed;top:0;right:0;width:240px;height:100vh;
+  background:linear-gradient(180deg,var(--gr2) 0%,var(--gr) 100%);
+  padding:24px 0;z-index:100;overflow-y:auto;
+  box-shadow:-4px 0 24px rgba(0,0,0,.15);
+}
+.sb-brand{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,.15);text-align:center}
+.sb-brand-logo{width:52px;height:52px;border-radius:12px;overflow:hidden;margin:0 auto 8px}
+.sb-brand-logo img{width:100%;height:100%;object-fit:cover}
+.sb-brand-name{font-size:13px;font-weight:900;color:#fff}
+.sb-brand-sub{font-size:10px;color:rgba(255,255,255,.65)}
+.sb-menu{padding:16px 0}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:11px 20px;
+  color:rgba(255,255,255,.75);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .18s;border-right:3px solid transparent;
+}
+.sb-item:hover,.sb-item.active{background:rgba(255,255,255,.12);color:#fff;border-right-color:var(--or)}
+.sb-item svg{flex-shrink:0}
+.sb-section{padding:8px 20px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px}
+.sb-logout{margin:16px;padding:10px;background:rgba(232,82,26,.25);color:#fff;border:1px solid rgba(232,82,26,.4);border-radius:var(--rad-sm);text-align:center;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s}
+.sb-logout:hover{background:var(--or)}
+/* ── MAIN ── */
+.main-content{margin-right:240px;min-height:100vh;padding:28px}
+.topbar-admin{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.page-title{font-size:22px;font-weight:900;color:var(--gr2)}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px}
+/* ── PANELS ── */
+.panel{display:none}
+.panel.active{display:block}
+/* ── CARDS ── */
+.card{background:#fff;border-radius:var(--rad);padding:22px;box-shadow:var(--shadow);margin-bottom:20px;border:1px solid var(--border)}
+.card-title{font-size:15px;font-weight:800;color:var(--gr2);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title svg{color:var(--or)}
+/* ── FORM ELEMENTS ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;font-weight:700;color:var(--gr2)}
+.form-input,.form-select,.form-textarea{
+  padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rad-sm);
+  font-family:'Cairo',sans-serif;font-size:13px;outline:none;transition:border .2s;background:#fff;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--or)}
+.form-textarea{resize:vertical;min-height:80px}
+/* ── BUTTONS ── */
+.btn{padding:10px 18px;border:none;border-radius:var(--rad-sm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--gr);color:#fff}
+.btn-primary:hover{background:var(--gr2)}
+.btn-orange{background:var(--or);color:#fff}
+.btn-orange:hover{background:var(--or2)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#c53030}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-ghost{background:var(--light);color:var(--text)}
+.btn-ghost:hover{background:var(--border)}
+/* ── TABLES ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--light);padding:10px 12px;text-align:right;font-weight:700;color:var(--gr2);border-bottom:2px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#fafafa}
+/* ── TICKER LIST ── */
+.ticker-item-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--light);border-radius:var(--rad-sm);margin-bottom:8px}
+.ticker-item-row .ti-text{flex:1;font-size:13px;font-weight:600}
+.ti-badge-tag{background:var(--or);color:#fff;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:900}
+/* ── MENU ITEM CARDS ── */
+.menu-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.mitem-card{background:var(--light);border-radius:var(--rad-sm);padding:14px;position:relative;border:1.5px solid var(--border)}
+.mitem-card img{width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+.mitem-emoji-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff5ef,#fde8dc);border-radius:8px;margin-bottom:8px;font-size:40px}
+.mitem-name{font-size:14px;font-weight:800;margin-bottom:4px}
+.mitem-desc{font-size:11px;color:var(--muted);margin-bottom:8px;min-height:20px}
+.mitem-price{font-size:13px;font-weight:700;color:var(--or)}
+.mitem-actions{display:flex;gap:6px;margin-top:10px}
+.mitem-badge{position:absolute;top:8px;left:8px;background:var(--or);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:900}
+/* ── BRANCH CARDS ── */
+.branch-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.branch-card-adm{background:var(--light);border-radius:var(--rad-sm);padding:16px;border:1.5px solid var(--border)}
+.branch-card-adm .bc-name{font-size:15px;font-weight:800;margin-bottom:6px}
+.branch-card-adm .bc-addr{font-size:12px;color:var(--muted);margin-bottom:12px}
+.bc-status{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.bc-status.open{background:#c6f6d5;color:#276749}
+.bc-status.soon{background:#feebc8;color:#c05621}
+.bc-status.hidden{background:#fed7d7;color:#9b2c2c}
+/* ── ADDON ROWS ── */
+.addon-row-adm{display:flex;align-items:center;gap:8px;padding:8px;background:var(--light);border-radius:var(--rad-sm);margin-bottom:6px}
+.addon-row-adm .ar-name{flex:1;font-size:13px;font-weight:600}
+.addon-row-adm .ar-price{font-size:12px;color:var(--or);font-weight:700}
+/* ── TOGGLE ── */
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle{position:relative;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:12px;cursor:pointer;transition:.3s}
+.toggle-slider:before{position:absolute;content:'';width:18px;height:18px;right:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--gr)}
+.toggle input:checked+.toggle-slider:before{right:auto;left:3px}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--rad);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border);text-align:center}
+.stat-val{font-size:28px;font-weight:900;color:var(--or)}
+.stat-lbl{font-size:12px;color:var(--muted);font-weight:600;margin-top:4px}
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--gr);color:#fff;padding:12px 24px;border-radius:30px;
+  font-size:14px;font-weight:700;z-index:9999;
+  transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+/* ── OWNER LOCKED ── */
+.owner-locked{position:relative}
+.owner-locked input,.owner-locked textarea{opacity:.45;cursor:not-allowed;background:var(--light)}
+.owner-locked-badge{
+  position:absolute;top:6px;left:6px;background:var(--gr2);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;pointer-events:none;
+}
+/* ── MAP TYPE SELECT ── */
+.map-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.map-opt{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--rad-sm);cursor:pointer;text-align:center;font-size:11px;font-weight:700;transition:all .2s}
+.map-opt.active{border-color:var(--or);background:rgba(232,82,26,.08);color:var(--or)}
+/* ── WHATSAPP ── */
+.wa-preview{background:#e7fde5;border-radius:var(--rad-sm);padding:14px;font-size:12px;line-height:1.8;direction:ltr;font-family:monospace;white-space:pre-wrap;border:1px solid #b5e8b0;max-height:220px;overflow-y:auto}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{width:200px}
+  .main-content{margin-right:200px;padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:540px){
+  .sidebar{display:none}
+  .main-content{margin-right:0}
+}
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:var(--rad);padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:900;color:var(--gr2);margin-bottom:16px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:15px;font-weight:800;color:var(--gr2)}
+/* category tab pills */
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cat-tab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:var(--light);color:var(--text);border:1.5px solid var(--border);transition:all .2s}
+.cat-tab.active{background:var(--or);color:#fff;border-color:var(--or)}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="logo.png" alt="Logo" onerror="this.style.display='none';this.parentNode.style.background='#1a5c3a';this.parentNode.innerHTML='🥙'">
+    </div>
+    <div class="login-title">لوحة تحكم المعلم</div>
+    <div class="login-sub">تسجيل دخول المسؤول</div>
+    <input class="login-field" type="text" id="li-user" placeholder="اسم المستخدم" value="">
+    <input class="login-field" type="password" id="li-pass" placeholder="كلمة المرور" value="">
+    <button class="login-btn" onclick="doAdminLogin()">دخول إلى لوحة التحكم</button>
+    <div class="login-err" id="li-err">❌ بيانات خاطئة، حاول مجدداً</div>
+    <p style="font-size:11px;color:#bbb;margin-top:14px">admin / admin123</p>
+  </div>
+</div>
+
+<!-- ══ ADMIN ROOT ══ -->
+<div id="admin-root">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-logo">
+      <img src="logo.png" alt="" onerror="this.style.display='none'">
+    </div>
+    <div class="sb-brand-name" id="sb-brand-name">معلم الشاورما</div>
+    <div class="sb-brand-sub">لوحة التحكم</div>
+  </div>
+  <div class="sb-menu">
+    <div class="sb-section">الرئيسية</div>
+    <div class="sb-item active" onclick="showPanel('dashboard')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>لوحة التحكم
+    </div>
+    <div class="sb-section">المحتوى</div>
+    <div class="sb-item" onclick="showPanel('ticker')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>شريط الأخبار
+    </div>
+    <div class="sb-item" onclick="showPanel('hero')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>صفحة الهيرو
+    </div>
+    <div class="sb-item" onclick="showPanel('features')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>مميزات المطعم
+    </div>
+    <div class="sb-section">المنيو</div>
+    <div class="sb-item" onclick="showPanel('menu')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>إدارة المنيو
+    </div>
+    <div class="sb-item" onclick="showPanel('categories')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2l5 3 5-3 5 3"/></svg>الأقسام
+    </div>
+    <div class="sb-section">الفروع والتوصيل</div>
+    <div class="sb-item" onclick="showPanel('branches')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>الفروع
+    </div>
+    <div class="sb-item" onclick="showPanel('delivery')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>إعدادات التوصيل
+    </div>
+    <div class="sb-section">الطلبات</div>
+    <div class="sb-item" onclick="showPanel('whatsapp')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>واتساب والطلبات
+    </div>
+    <div class="sb-section">الهوية</div>
+    <div class="sb-item" onclick="showPanel('identity')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>الهوية والعلامة التجارية
+    </div>
+  </div>
+  <div class="sb-logout" onclick="logout()">🚪 تسجيل الخروج</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+<!-- ══ DASHBOARD ══ -->
+<div class="panel active" id="panel-dashboard">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">لوحة التحكم 🎛️</div>
+      <div class="page-sub">مرحباً بك في لوحة تحكم معلم الشاورما</div>
+    </div>
+    <button class="btn btn-orange" onclick="previewSite()">👁️ معاينة الموقع</button>
+  </div>
+  <div class="stats-grid" id="stats-grid"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>آخر تعديلات الشريط</div>
+      <div id="dash-ticker-preview"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>إحصائيات المنيو</div>
+      <div id="dash-menu-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TICKER ══ -->
+<div class="panel" id="panel-ticker">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">📣 شريط الأخبار المتحرك</div>
+      <div class="page-sub">يظهر في أعلى الموقع — يمكنك تعديل وإضافة وحذف الرسائل</div>
+    </div>
+    <button class="btn btn-orange" onclick="openAddTicker()">+ إضافة رسالة</button>
+  </div>
+  <div class="card">
+    <div class="card-title">الرسائل الحالية (الحد الأقصى 8)</div>
+    <div id="ticker-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">معاينة الشريط</div>
+    <div style="background:linear-gradient(90deg,#134228,#1a5c3a);padding:10px 20px;border-radius:8px;overflow:hidden">
+      <div id="ticker-preview-scroll" style="color:#fff;font-size:13px;font-weight:700;white-space:nowrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HERO ══ -->
+<div class="panel" id="panel-hero">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">🏠 صفحة الهيرو الرئيسية</div>
+      <div class="page-sub">العنوان والوصف الذي يظهر في أعلى الموقع</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveHero()">💾 حفظ</button>
+  </div>
+  <div class="card">
+    <div class="card-title">محتوى الهيرو</div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">العنوان الرئيسي</label>
+      <input class="form-input" id="hero-title" value="اطلب من أقرب فرع عليك">
+    </div></div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">العنوان الثانوي</label>
+      <input class="form-input" id="hero-sub" value="اختر الفرع المناسب لعرض المنيو الخاص به">
+    </div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">قسم التوصيل (الصندوق الجانبي)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">رقم التوصيل الموحد</label>
+        <input class="form-input" id="del-phone" value="0781-1633663">
+      </div>
+      <div class="form-group">
+        <label class="form-label">عنوان قسم التوصيل</label>
+        <input class="form-input" id="del-title" value="خدمة التوصيل الموحد">
+      </div>
+    </div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">الوصف</label>
+      <input class="form-input" id="del-sub" value="نصلك أينما كنت في المنطقة">
+    </div></div>
+    <button class="btn btn-primary" onclick="saveDeliveryInfo()">💾 حفظ</button>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<div class="panel" id="panel-features">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">⭐ مميزات المطعم</div>
+      <div class="page-sub">ثلاث بطاقات تظهر أسفل قسم الفروع</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveFeatures()">💾 حفظ الكل</button>
+  </div>
+  <div id="features-editor"></div>
+</div>
+
+<!-- ══ MENU ══ -->
+<div class="panel" id="panel-menu">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">🍽️ إدارة المنيو</div>
+      <div class="page-sub">أضف وعدّل وأخفِ عناصر القائمة</div>
+    </div>
+    <button class="btn btn-orange" onclick="openAddItem()">+ إضافة عنصر</button>
+  </div>
+  <div class="cat-tabs" id="menu-cat-tabs"></div>
+  <div id="menu-items-container"></div>
+</div>
+
+<!-- ══ CATEGORIES ══ -->
+<div class="panel" id="panel-categories">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">📂 إدارة الأقسام</div>
+      <div class="page-sub">أضف أو أخفِ أقسام المنيو</div>
+    </div>
+    <button class="btn btn-orange" onclick="openAddCategory()">+ قسم جديد</button>
+  </div>
+  <div class="card"><div id="categories-list"></div></div>
+</div>
+
+<!-- ══ BRANCHES ══ -->
+<div class="panel" id="panel-branches">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">📍 إدارة الفروع</div>
+      <div class="page-sub">عدّل بيانات الفروع والخرائط والروابط</div>
+    </div>
+    <button class="btn btn-orange" onclick="openAddBranch()">+ فرع جديد</button>
+  </div>
+  <div class="card" style="background:#fffbf0;border-color:#f6d860">
+    <div style="font-size:13px;font-weight:700;color:#92620a;display:flex;align-items:center;gap:8px">
+      🔒 <span>ميزة إضافة الفروع — يُنصح بالتواصل مع المطور لإضافة فروع جديدة وضمان الإعداد الصحيح</span>
+    </div>
+  </div>
+  <div class="branch-list" id="branches-list"></div>
+</div>
+
+<!-- ══ DELIVERY SETTINGS ══ -->
+<div class="panel" id="panel-delivery">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">🚗 إعدادات التوصيل</div>
+      <div class="page-sub">رسوم التوصيل ومناطق التغطية</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveDelivery()">💾 حفظ</button>
+  </div>
+  <div class="card">
+    <div class="card-title">رسوم التوصيل الأساسية</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">رسوم التوصيل الثابتة (IQD)</label>
+        <input class="form-input" id="del-fee" type="number" value="2000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">حد الطلب المجاني (IQD) — 0 = لا يوجد</label>
+        <input class="form-input" id="del-free-threshold" type="number" value="15000">
+      </div>
+    </div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">رسالة التوصيل المجاني (تظهر في الشريط)</label>
+      <input class="form-input" id="del-free-msg" value="اطلب الآن واحصل على توصيل مجاني فوق 15,000 دينار">
+    </div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">مناطق التوصيل ورسومها</div>
+    <div class="sec-hdr" style="margin-bottom:12px">
+      <span style="font-size:13px;color:var(--muted)">حدد رسوم مختلفة لكل منطقة</span>
+      <button class="btn btn-sm btn-ghost" onclick="addDeliveryZone()">+ منطقة</button>
+    </div>
+    <div id="delivery-zones-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">خيار الكتابة اليدوية للموقع</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">عندما لا يجد الزبون موقعه في القائمة، يظهر له خانة كتابة يدوية</div>
+    <div class="toggle-wrap">
+      <label class="toggle"><input type="checkbox" id="manual-location-toggle" checked><div class="toggle-slider"></div></label>
+      <span style="font-size:13px;font-weight:700">تفعيل خيار كتابة الموقع يدوياً</span>
+    </div>
+    <div class="form-row full" style="margin-top:12px"><div class="form-group">
+      <label class="form-label">نص placeholder للموقع اليدوي</label>
+      <input class="form-input" id="manual-loc-placeholder" value="اكتب عنوانك بالتفصيل (المنطقة، الشارع، رقم البيت)">
+    </div></div>
+  </div>
+</div>
+
+<!-- ══ WHATSAPP ══ -->
+<div class="panel" id="panel-whatsapp">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">📱 واتساب والطلبات</div>
+      <div class="page-sub">رقم الواتساب وقالب رسالة الطلب التلقائية</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveWhatsapp()">💾 حفظ</button>
+  </div>
+  <div class="card">
+    <div class="card-title">رقم واتساب المطعم</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">رقم الواتساب (مع رمز الدولة)</label>
+        <input class="form-input" id="wa-number" placeholder="9647811633663" value="9647811633663" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">نوع فتح الواتساب</label>
+        <select class="form-select" id="wa-type">
+          <option value="api">wa.me API (موصى)</option>
+          <option value="web">واتساب ويب</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">قالب رسالة الطلب التلقائية</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+      المتغيرات المتاحة: <code style="background:var(--light);padding:1px 5px;border-radius:4px">{رقم_الطلب}</code> 
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{الاسم}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{الهاتف}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{العناصر}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{المجموع}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{رسوم_التوصيل}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{الإجمالي}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{العنوان}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{ملاحظات}</code>
+      <code style="background:var(--light);padding:1px 5px;border-radius:4px">{نوع_التوصيل}</code>
+    </div>
+    <textarea class="form-textarea" id="wa-template" style="min-height:180px;font-family:monospace;font-size:12px;direction:rtl"></textarea>
+    <div style="margin-top:12px;font-size:13px;font-weight:700;color:var(--gr2);margin-bottom:8px">معاينة الرسالة:</div>
+    <div class="wa-preview" id="wa-preview-box"></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="refreshWaPreview()">🔄 تحديث المعاينة</button>
+  </div>
+  <div class="card">
+    <div class="card-title">إعدادات بعد إتمام الطلب</div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">رسالة شكر الزبون (تظهر بعد الطلب)</label>
+      <textarea class="form-textarea" id="success-msg">✅ تم استلام طلبك بنجاح!
+سيتواصل معك فريقنا في أقرب وقت ممكن.
+شكراً لثقتك بمعلم الشاورما 🥙</textarea>
+    </div></div>
+    <div class="toggle-wrap" style="margin-top:10px">
+      <label class="toggle"><input type="checkbox" id="auto-wa-toggle" checked><div class="toggle-slider"></div></label>
+      <span style="font-size:13px;font-weight:700">إرسال الطلب تلقائياً على واتساب عند التأكيد</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IDENTITY ══ -->
+<div class="panel" id="panel-identity">
+  <div class="topbar-admin">
+    <div>
+      <div class="page-title">🎨 الهوية والعلامة التجارية</div>
+      <div class="page-sub">البيانات الأساسية للمطعم</div>
+    </div>
+  </div>
+  <div class="card owner-locked" style="position:relative">
+    <div class="owner-locked-badge">🔒 يعدّله المالك فقط — تواصل مع المطور لأي تعديل</div>
+    <div class="card-title" style="margin-top:8px">اسم المطعم والشعار</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">اسم المطعم الرئيسي</label>
+        <input class="form-input" id="rest-name" value="معلم الشاورما" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الاسم الثانوي (tagline)</label>
+        <input class="form-input" id="rest-sub" value="للأكلات الشاورما" disabled>
+      </div>
+    </div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">الشعار (Logo) — لا يمكن تغييره من هنا</label>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--light);border-radius:var(--rad-sm)">
+        <img src="logo.png" style="width:60px;height:60px;object-fit:contain;border-radius:8px" onerror="this.style.display='none'">
+        <span style="font-size:12px;color:var(--muted)">لتغيير الشعار تواصل مع فريق التطوير</span>
+      </div>
+    </div></div>
+    <div style="margin-top:14px;padding:12px;background:#fffbf0;border-radius:var(--rad-sm);border:1px solid #f6d860;font-size:12px;color:#92620a">
+      🔒 هذا القسم محمي ويعود للمالك الأصلي فقط. أي تعديل على الاسم أو الشعار يستلزم التواصل مع المطور.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">معلومات التواصل</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">رقم الهاتف الرئيسي</label>
+        <input class="form-input" id="main-phone" value="0781-1633663" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني (اختياري)</label>
+        <input class="form-input" id="main-email" placeholder="info@maalim.com" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">انستغرام</label>
+        <input class="form-input" id="social-ig" placeholder="@maalim_shawarma" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">فيسبوك (رابط)</label>
+        <input class="form-input" id="social-fb" placeholder="https://facebook.com/..." dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">تيك توك</label>
+        <input class="form-input" id="social-tt" placeholder="@maalim_shawarma" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">سناب شات</label>
+        <input class="form-input" id="social-snap" placeholder="@maalim" dir="ltr">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveIdentity()">💾 حفظ معلومات التواصل</button>
+  </div>
+  <div class="card">
+    <div class="card-title">كود الخصم</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">الكود</label>
+        <input class="form-input" id="discount-code" value="MAALIM10" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">نسبة الخصم (%)</label>
+        <input class="form-input" id="discount-pct" type="number" value="10" min="0" max="100">
+      </div>
+    </div>
+    <div class="toggle-wrap" style="margin-top:8px">
+      <label class="toggle"><input type="checkbox" id="discount-active" checked><div class="toggle-slider"></div></label>
+      <span style="font-size:13px;font-weight:700">تفعيل كود الخصم</span>
+    </div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="saveDiscount()">💾 حفظ</button>
+  </div>
+</div>
+
+</div><!-- end main-content -->
+</div><!-- end admin-root -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add/Edit Ticker -->
+<div class="modal-ov" id="modal-ticker">
+  <div class="modal">
+    <div class="modal-title" id="mt-title">إضافة رسالة جديدة للشريط</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">الرمز (إيموجي أو ★)</label>
+      <input class="form-input" id="mt-icon" value="★" maxlength="4">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">نص الرسالة</label>
+      <input class="form-input" id="mt-text" placeholder="اكتب رسالتك هنا...">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">نص الشارة (اختياري)</label>
+      <input class="form-input" id="mt-badge" placeholder="مثال: جديد، عرض، خصم">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ticker')">إلغاء</button>
+      <button class="btn btn-orange" onclick="saveTicker()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Menu Item -->
+<div class="modal-ov" id="modal-item">
+  <div class="modal">
+    <div class="modal-title" id="mi-title">إضافة عنصر جديد</div>
+    <input type="hidden" id="mi-cat">
+    <input type="hidden" id="mi-idx" value="-1">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">اسم العنصر</label>
+        <input class="form-input" id="mi-name" placeholder="مثال: شاورما دجاج">
+      </div>
+      <div class="form-group">
+        <label class="form-label">السعر (IQD)</label>
+        <input class="form-input" id="mi-price" type="number" placeholder="5000">
+      </div>
+    </div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">الوصف (اختياري)</label>
+      <input class="form-input" id="mi-desc" placeholder="مكونات أو وصف مختصر">
+    </div></div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">رابط الصورة (اختياري)</label>
+      <input class="form-input" id="mi-img" placeholder="https://..." dir="ltr">
+      <span style="font-size:11px;color:var(--muted);margin-top:3px">اتركه فارغاً لاستخدام صورة افتراضية</span>
+    </div></div>
+    <div class="form-row"><div class="form-group">
+      <label class="form-label">إيموجي التصنيف</label>
+      <input class="form-input" id="mi-emoji" placeholder="🥙" maxlength="4" value="🥙">
+    </div>
+    <div class="form-group">
+      <div class="toggle-wrap" style="margin-top:24px">
+        <label class="toggle"><input type="checkbox" id="mi-featured"><div class="toggle-slider"></div></label>
+        <span style="font-size:12px;font-weight:700">عنصر مميز (بطاقة كبيرة)</span>
+      </div>
+    </div></div>
+    <div style="margin-bottom:12px">
+      <div class="sec-hdr">
+        <span style="font-size:13px;font-weight:700;color:var(--gr2)">الإضافات الاختيارية (Extra)</span>
+        <button class="btn btn-sm btn-ghost" onclick="addAddonRow()">+ إضافة</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">تظهر للزبون عند الضغط على "إضافة إلى السلة" — مثال: مايونيز إضافي، صلصة حارة</div>
+      <div id="addons-editor"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-item')">إلغاء</button>
+      <button class="btn btn-orange" onclick="saveItem()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Category -->
+<div class="modal-ov" id="modal-cat">
+  <div class="modal">
+    <div class="modal-title">إضافة قسم جديد</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">اسم القسم</label>
+        <input class="form-input" id="mc-name" placeholder="مثال: وجبات خاصة">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الإيموجي</label>
+        <input class="form-input" id="mc-emoji" placeholder="🍽️" maxlength="4" value="🍽️">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cat')">إلغاء</button>
+      <button class="btn btn-orange" onclick="saveCategory()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Branch -->
+<div class="modal-ov" id="modal-branch">
+  <div class="modal">
+    <div class="modal-title" id="mb-title">تعديل الفرع</div>
+    <input type="hidden" id="mb-idx" value="-1">
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">اسم الفرع</label>
+      <input class="form-input" id="mb-name">
+    </div></div>
+    <div class="form-row full"><div class="form-group">
+      <label class="form-label">العنوان</label>
+      <input class="form-input" id="mb-addr">
+    </div></div>
+    <div style="margin-bottom:12px">
+      <label class="form-label" style="margin-bottom:8px;display:block">نوع الخريطة</label>
+      <div class="map-options">
+        <div class="map-opt active" id="mopt-osm" onclick="selectMapType('osm')">OpenStreetMap<br><small>رابط OSM</small></div>
+        <div class="map-opt" id="mopt-gmaps" onclick="selectMapType('gmaps')">Google Maps<br><small>رابط Google</small></div>
+        <div class="map-opt" id="mopt-coords" onclick="selectMapType('coords')">إحداثيات<br><small>Lat, Long</small></div>
+        <div class="map-opt" id="mopt-embed" onclick="selectMapType('embed')">رابط Embed<br><small>iframe src</small></div>
+      </div>
+    </div>
+    <div class="form-group" id="map-input-wrap" style="margin-bottom:12px">
+      <label class="form-label" id="map-input-label">رابط OpenStreetMap (embed)</label>
+      <input class="form-input" id="mb-map-val" dir="ltr" placeholder="https://www.openstreetmap.org/export/embed.html?...">
+    </div>
+    <div class="form-group" id="coords-wrap" style="display:none;margin-bottom:12px">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">خط العرض (Latitude)</label>
+          <input class="form-input" id="mb-lat" dir="ltr" placeholder="32.610">
+        </div>
+        <div class="form-group">
+          <label class="form-label">خط الطول (Longitude)</label>
+          <input class="form-input" id="mb-lng" dir="ltr" placeholder="44.025">
+        </div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">حالة الفرع</label>
+      <select class="form-select" id="mb-status">
+        <option value="open">مفتوح ✅</option>
+        <option value="soon">قريباً 🔜</option>
+        <option value="hidden">مخفي 🚫</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-branch')">إلغاء</button>
+      <button class="btn btn-orange" onclick="saveBranch()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════
+let DATA = {
+  tickerItems: [
+    {icon:'★', text:'عرض اليوم: وجبة شاورما + مشروب مجاناً', badge:'جديد'},
+    {icon:'🔥', text:'اطلب الآن واحصل على توصيل مجاني فوق 15,000 دينار', badge:''},
+    {icon:'★', text:'افتتاح فرع مول الحارث قريباً — ترقبونا!', badge:''},
+    {icon:'🎉', text:'كود الخصم: MAALIM10 — خصم 10% على أول طلب', badge:'MAALIM10'},
+    {icon:'★', text:'شاورما العراق الأصيلة — من قلب كربلاء لك', badge:''},
+  ],
+  hero: {
+    title:'اطلب من أقرب فرع عليك',
+    sub:'اختر الفرع المناسب لعرض المنيو الخاص به',
+  },
+  delivery: {
+    phone:'0781-1633663',
+    title:'خدمة التوصيل الموحد',
+    sub:'نصلك أينما كنت في المنطقة',
+    fee:2000,
+    freeThreshold:15000,
+    freemsg:'اطلب الآن واحصل على توصيل مجاني فوق 15,000 دينار',
+    manualLocation:true,
+    manualPlaceholder:'اكتب عنوانك بالتفصيل (المنطقة، الشارع، رقم البيت)',
+    zones:[
+      {name:'كربلاء المركز', fee:2000},
+      {name:'الهندية', fee:3000},
+      {name:'بابل / الحلة', fee:5000},
+    ]
+  },
+  whatsapp:{
+    number:'9647811633663',
+    type:'api',
+    template:'🥙 *طلب جديد من معلم الشاورما*\n━━━━━━━━━━━━━━━━\n📋 *رقم الطلب:* #{رقم_الطلب}\n👤 *الاسم:* {الاسم}\n📞 *الهاتف:* {الهاتف}\n🚗 *نوع الطوصيل:* {نوع_التوصيل}\n📍 *العنوان:* {العنوان}\n━━━━━━━━━━━━━━━━\n🛒 *الطلبات:*\n{العناصر}\n━━━━━━━━━━━━━━━━\n💰 المجموع: {المجموع}\n🚗 رسوم التوصيل: {رسوم_التوصيل}\n💵 *الإجمالي: {الإجمالي}*\n📝 ملاحظات: {ملاحظات}\n━━━━━━━━━━━━━━━━\n✅ الرجاء التأكيد والتحضير',
+    autoSend:true,
+    successMsg:'✅ تم استلام طلبك بنجاح!\nسيتواصل معك فريقنا في أقرب وقت ممكن.\nشكراً لثقتك بمعلم الشاورما 🥙'
+  },
+  features:[
+    {icon:'😋', title:'تجربة مميزة', desc:'أجواء مريحة وخدمة سريعة تجعل زيارتك ذكرى جميلة', bg:'rgba(232,82,26,.1)'},
+    {icon:'🏆', title:'أسعار مناسبة', desc:'وجبات لذيذة بأسعار تناسب الجميع وتوفر لميزانيتك', bg:'rgba(255,200,0,.15)'},
+    {icon:'✅', title:'جودة عالية', desc:'أجود المكونات الطازجة يومياً لضمان أفضل طعم', bg:'rgba(26,92,58,.1)'},
+  ],
+  branches:[
+    {name:'فرع كربلاء', addr:'شارع الإمام علي، كربلاء', status:'open', mapType:'osm', mapVal:'https://www.openstreetmap.org/export/embed.html?bbox=44.005,32.595,44.045,32.625&layer=mapnik&marker=32.610,44.025', gmapsLink:'https://maps.google.com/?q=Karbala+Iraq'},
+    {name:'معلم الشاورما - الهندية', addr:'الهندية، كربلاء', status:'soon', mapType:'osm', mapVal:'https://www.openstreetmap.org/export/embed.html?bbox=44.270,32.445,44.310,32.475&layer=mapnik&marker=32.460,44.290', gmapsLink:'https://maps.google.com/?q=Hindiya+Karbala'},
+    {name:'معلم الشاورما بابل', addr:'الحلة، بابل', status:'soon', mapType:'osm', mapVal:'https://www.openstreetmap.org/export/embed.html?bbox=44.400,32.460,44.440,32.500&layer=mapnik&marker=32.480,44.420', gmapsLink:'https://maps.google.com/?q=Hillah+Babylon+Iraq'},
+  ],
+  categories:{
+    'شاورما دجاج':{emoji:'🥙', hidden:false},
+    'شاورما لحم':{emoji:'🥩', hidden:false},
+    'برغر':{emoji:'🍔', hidden:false},
+    'سندويشات المعلم':{emoji:'🥪', hidden:false},
+    'بيتزا المعلم':{emoji:'🍕', hidden:false},
+    'ريزو المعلم':{emoji:'🍚', hidden:false},
+    'المقبلات':{emoji:'🍟', hidden:false},
+  },
+  menuData:{
+    'شاورما دجاج':{emoji:'🥙', items:[
+      {name:'شاورما دجاج عادية', desc:'خبز + دجاج مشوي + خضار طازجة + صلصة المعلم', price:4500, ft:true, img:'', addons:[{name:'صلصة حارة إضافية',price:500},{name:'جبنة إضافية',price:1000},{name:'مايونيز إضافي',price:500}]},
+      {name:'شاورما دجاج مشكلة', desc:'', price:5500, ft:false, img:'', addons:[]},
+      {name:'شاورما كريمي دجاج', desc:'', price:5000, ft:false, img:'', addons:[{name:'صلصة ثوم إضافية',price:500}]},
+      {name:'شاورما باربيكيو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
+    ]},
+    'شاورما لحم':{emoji:'🥩', items:[
+      {name:'شاورما لحم عادية', desc:'خبز + لحم مشوي + بهارات المعلم السرية', price:6000, ft:true, img:'', addons:[{name:'جبنة إضافية',price:1000},{name:'صلصة حارة',price:500}]},
+      {name:'شاورما لحم مشكلة', desc:'', price:7000, ft:false, img:'', addons:[]},
+    ]},
+    'برغر':{emoji:'🍔', items:[
+      {name:'شكاغو برغر مدخن', desc:'', price:65000, ft:false, img:'', addons:[]},
+      {name:'تشيز برغر ماتروم', desc:'', price:6500, ft:false, img:'', addons:[]},
+      {name:'برغر ماغنوم', desc:'', price:7000, ft:false, img:'', addons:[]},
+      {name:'برغر المعلم', desc:'250 غم لحم تندر · بندورة · مايونيز · جبن المعلم', price:9000, ft:false, img:'', addons:[{name:'إضافة بيضة',price:500},{name:'صلصة BBQ',price:1000}]},
+    ]},
+    'سندويشات المعلم':{emoji:'🥪', items:[
+      {name:'سندويش فرانسيسكو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
+      {name:'سندويش مكسيكانو دجاج', desc:'', price:5500, ft:false, img:'', addons:[]},
+      {name:'سندويش المعلم', desc:'', price:5500, ft:false, img:'', addons:[]},
+    ]},
+    'بيتزا المعلم':{emoji:'🍕', items:[
+      {name:'بيتزا المعلم كبير', desc:'', price:12000, ft:false, img:'', addons:[]},
+      {name:'بيتزا المعلم وسط', desc:'', price:8000, ft:false, img:'', addons:[]},
+    ]},
+    'ريزو المعلم':{emoji:'🍚', items:[
+      {name:'ريزو دجاج', desc:'', price:7000, ft:false, img:'', addons:[]},
+      {name:'ريزو لحم', desc:'', price:8000, ft:false, img:'', addons:[]},
+    ]},
+    'المقبلات':{emoji:'🍟', items:[
+      {name:'فريز مقلية', desc:'', price:2500, ft:false, img:'', addons:[]},
+      {name:'مزة مشكلة', desc:'', price:4000, ft:false, img:'', addons:[]},
+    ]},
+  },
+  discount:{code:'MAALIM10', pct:10, active:true},
+  identity:{phone:'0781-1633663', email:'', ig:'', fb:'', tt:'', snap:''},
+};
+
+let currentMapType = 'osm';
+let editingTickerIdx = -1;
+let currentMenuCat = '';
+
+// ══════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════
+const ADMIN_CREDS = {admin:'admin123', kitchen:'1234'};
+function doAdminLogin(){
+  const u=document.getElementById('li-user').value.trim();
+  const p=document.getElementById('li-pass').value;
+  const err=document.getElementById('li-err');
+  if(ADMIN_CREDS[u]&&ADMIN_CREDS[u]===p){
+    err.style.display='none';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-root').style.display='flex';
+    initAdmin();
+  } else {
+    err.style.display='block';
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doAdminLogin();});
+
+function logout(){
+  document.getElementById('admin-root').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function initAdmin(){
+  renderDashboard();
+  renderTicker();
+  renderFeatures();
+  renderMenu();
+  renderCategories();
+  renderBranches();
+  fillDeliveryForm();
+  fillWhatsapp();
+  fillIdentity();
+  // fill hero
+  document.getElementById('hero-title').value=DATA.hero.title;
+  document.getElementById('hero-sub').value=DATA.hero.sub;
+}
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if(name==='menu') renderMenu();
+}
+
+function previewSite(){
+  toast('📋 في الموقع الفعلي ستنعكس التغييرات تلقائياً');
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function renderDashboard(){
+  const allItems = Object.values(DATA.menuData).reduce((a,c)=>a+c.items.length,0);
+  const cats = Object.keys(DATA.menuData).length;
+  const branches = DATA.branches.length;
+  const openBranches = DATA.branches.filter(b=>b.status==='open').length;
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${allItems}</div><div class="stat-lbl">عناصر المنيو</div></div>
+    <div class="stat-card"><div class="stat-val">${cats}</div><div class="stat-lbl">أقسام</div></div>
+    <div class="stat-card"><div class="stat-val">${branches}</div><div class="stat-lbl">إجمالي الفروع</div></div>
+    <div class="stat-card"><div class="stat-val">${openBranches}</div><div class="stat-lbl">فروع مفتوحة</div></div>
+    <div class="stat-card"><div class="stat-val">${DATA.tickerItems.length}</div><div class="stat-lbl">رسائل الشريط</div></div>
+  `;
+  document.getElementById('dash-ticker-preview').innerHTML=DATA.tickerItems.map(t=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:14px">${t.icon}</span>
+      <span style="font-size:12px;flex:1">${t.text}</span>
+      ${t.badge?`<span style="background:var(--or);color:#fff;border-radius:12px;padding:1px 7px;font-size:10px">${t.badge}</span>`:''}
+    </div>`).join('');
+  let menuStats='';
+  Object.entries(DATA.menuData).forEach(([cat,data])=>{
+    menuStats+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span>${data.emoji} ${cat}</span>
+      <span style="font-weight:700;color:var(--or)">${data.items.length} عنصر</span>
+    </div>`;
+  });
+  document.getElementById('dash-menu-stats').innerHTML=menuStats;
+}
+
+// ══════════════════════════════════════
+// TICKER
+// ══════════════════════════════════════
+function renderTicker(){
+  const list=document.getElementById('ticker-list');
+  if(!DATA.tickerItems.length){list.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد رسائل</p>';return;}
+  list.innerHTML=DATA.tickerItems.map((t,i)=>`
+    <div class="ticker-item-row">
+      <span style="font-size:18px">${t.icon}</span>
+      <div class="ti-text">${t.text}${t.badge?` <span class="ti-badge-tag">${t.badge}</span>`:''}</div>
+      <button class="btn btn-sm btn-ghost" onclick="openEditTicker(${i})">✏️</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTicker(${i})">🗑️</button>
+      ${i>0?`<button class="btn btn-sm btn-ghost" onclick="moveTicker(${i},-1)">⬆️</button>`:''}
+      ${i<DATA.tickerItems.length-1?`<button class="btn btn-sm btn-ghost" onclick="moveTicker(${i},1)">⬇️</button>`:''}
+    </div>`).join('');
+  // preview
+  document.getElementById('ticker-preview-scroll').textContent=DATA.tickerItems.map(t=>`${t.icon} ${t.text}${t.badge?' ['+t.badge+']':''}`).join('  •  ');
+}
+
+function openAddTicker(){
+  editingTickerIdx=-1;
+  document.getElementById('mt-title').textContent='إضافة رسالة جديدة للشريط';
+  document.getElementById('mt-icon').value='★';
+  document.getElementById('mt-text').value='';
+  document.getElementById('mt-badge').value='';
+  openModal('modal-ticker');
+}
+function openEditTicker(i){
+  editingTickerIdx=i;
+  const t=DATA.tickerItems[i];
+  document.getElementById('mt-title').textContent='تعديل الرسالة';
+  document.getElementById('mt-icon').value=t.icon;
+  document.getElementById('mt-text').value=t.text;
+  document.getElementById('mt-badge').value=t.badge||'';
+  openModal('modal-ticker');
+}
+function saveTicker(){
+  const t={icon:document.getElementById('mt-icon').value||'★', text:document.getElementById('mt-text').value.trim(), badge:document.getElementById('mt-badge').value.trim()};
+  if(!t.text){alert('الرجاء كتابة نص الرسالة');return;}
+  if(editingTickerIdx>=0) DATA.tickerItems[editingTickerIdx]=t;
+  else if(DATA.tickerItems.length<8) DATA.tickerItems.push(t);
+  else{alert('الحد الأقصى 8 رسائل');return;}
+  closeModal('modal-ticker');
+  renderTicker();
+  renderDashboard();
+  toast('✅ تم حفظ رسالة الشريط');
+}
+function deleteTicker(i){if(confirm('حذف هذه الرسالة؟')){DATA.tickerItems.splice(i,1);renderTicker();renderDashboard();toast('🗑️ تم الحذف');}}
+function moveTicker(i,dir){const a=DATA.tickerItems;[a[i],a[i+dir]]=[a[i+dir],a[i]];renderTicker();}
+
+// ══════════════════════════════════════
+// HERO
+// ══════════════════════════════════════
+function saveHero(){
+  DATA.hero.title=document.getElementById('hero-title').value;
+  DATA.hero.sub=document.getElementById('hero-sub').value;
+  toast('✅ تم حفظ بيانات الهيرو');
+}
+function saveDeliveryInfo(){
+  DATA.delivery.phone=document.getElementById('del-phone').value;
+  DATA.delivery.title=document.getElementById('del-title').value;
+  DATA.delivery.sub=document.getElementById('del-sub').value;
+  toast('✅ تم حفظ بيانات التوصيل');
+}
+
+// ══════════════════════════════════════
+// FEATURES
+// ══════════════════════════════════════
+function renderFeatures(){
+  const el=document.getElementById('features-editor');
+  el.innerHTML=DATA.features.map((f,i)=>`
+    <div class="card">
+      <div class="card-title">${f.icon} بطاقة ${i+1}</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">الإيموجي</label>
+          <input class="form-input" id="feat-icon-${i}" value="${f.icon}" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">العنوان</label>
+          <input class="form-input" id="feat-title-${i}" value="${f.title}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الوصف</label>
+        <textarea class="form-textarea" id="feat-desc-${i}" style="min-height:60px">${f.desc}</textarea>
+      </div>
+    </div>`).join('');
+}
+function saveFeatures(){
+  DATA.features.forEach((f,i)=>{
+    f.icon=document.getElementById('feat-icon-'+i).value;
+    f.title=document.getElementById('feat-title-'+i).value;
+    f.desc=document.getElementById('feat-desc-'+i).value;
+  });
+  toast('✅ تم حفظ المميزات');
+}
+
+// ══════════════════════════════════════
+// MENU
+// ══════════════════════════════════════
+function renderMenu(){
+  const cats=Object.keys(DATA.menuData);
+  if(!currentMenuCat||!DATA.menuData[currentMenuCat]) currentMenuCat=cats[0]||'';
+  // tabs
+  const tabs=document.getElementById('menu-cat-tabs');
+  tabs.innerHTML=cats.map(c=>`<div class="cat-tab${c===currentMenuCat?' active':''}" onclick="switchMenuCat('${c}')">${DATA.menuData[c].emoji} ${c} (${DATA.menuData[c].items.length})</div>`).join('');
+  // items
+  const cont=document.getElementById('menu-items-container');
+  if(!currentMenuCat){cont.innerHTML='';return;}
+  const items=DATA.menuData[currentMenuCat].items;
+  if(!items.length){cont.innerHTML='<div class="card" style="text-align:center;color:var(--muted);padding:40px">لا توجد عناصر في هذا القسم</div>';return;}
+  cont.innerHTML=`<div class="menu-items-grid">${items.map((item,i)=>`
+    <div class="mitem-card">
+      ${item.ft?'<div class="mitem-badge">مميز ⭐</div>':''}
+      ${item.img
+        ?`<img src="${item.img}" onerror="this.style.display='none'">`
+        :`<div class="mitem-emoji-ph">${DATA.menuData[currentMenuCat].emoji}</div>`}
+      <div class="mitem-name">${item.name}</div>
+      <div class="mitem-desc">${item.desc||'—'}</div>
+      <div class="mitem-price">IQD ${(item.price||0).toLocaleString()}</div>
+      ${item.addons&&item.addons.length?`<div style="font-size:11px;color:var(--gr);margin-top:4px">✓ ${item.addons.length} إضافة متاحة</div>`:''}
+      <div class="mitem-actions">
+        <button class="btn btn-sm btn-ghost" onclick="openEditItem('${currentMenuCat}',${i})">✏️ تعديل</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteItem('${currentMenuCat}',${i})">🗑️</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+function switchMenuCat(cat){currentMenuCat=cat;renderMenu();}
+function openAddItem(){
+  document.getElementById('mi-title').textContent='إضافة عنصر جديد';
+  document.getElementById('mi-cat').value=currentMenuCat;
+  document.getElementById('mi-idx').value=-1;
+  document.getElementById('mi-name').value='';
+  document.getElementById('mi-price').value='';
+  document.getElementById('mi-desc').value='';
+  document.getElementById('mi-img').value='';
+  document.getElementById('mi-emoji').value=DATA.menuData[currentMenuCat]?.emoji||'🍽️';
+  document.getElementById('mi-featured').checked=false;
+  document.getElementById('addons-editor').innerHTML='';
+  openModal('modal-item');
+}
+function openEditItem(cat,idx){
+  const item=DATA.menuData[cat].items[idx];
+  document.getElementById('mi-title').textContent='تعديل عنصر';
+  document.getElementById('mi-cat').value=cat;
+  document.getElementById('mi-idx').value=idx;
+  document.getElementById('mi-name').value=item.name;
+  document.getElementById('mi-price').value=item.price;
+  document.getElementById('mi-desc').value=item.desc||'';
+  document.getElementById('mi-img').value=item.img||'';
+  document.getElementById('mi-emoji').value=DATA.menuData[cat].emoji;
+  document.getElementById('mi-featured').checked=!!item.ft;
+  // addons
+  const ae=document.getElementById('addons-editor');
+  ae.innerHTML='';
+  (item.addons||[]).forEach((a,i)=>ae.appendChild(makeAddonRow(a.name,a.price)));
+  openModal('modal-item');
+}
+function makeAddonRow(name='',price=0){
+  const row=document.createElement('div');
+  row.className='addon-row-adm';
+  row.innerHTML=`
+    <input class="form-input ar-name-inp" style="flex:1" value="${name}" placeholder="اسم الإضافة (مثل: مايونيز)">
+    <input class="form-input ar-price-inp" style="width:100px" type="number" value="${price}" placeholder="السعر">
+    <button class="btn btn-sm btn-danger" onclick="this.parentNode.remove()">✕</button>`;
+  return row;
+}
+function addAddonRow(){document.getElementById('addons-editor').appendChild(makeAddonRow());}
+function saveItem(){
+  const cat=document.getElementById('mi-cat').value;
+  const idx=parseInt(document.getElementById('mi-idx').value);
+  const name=document.getElementById('mi-name').value.trim();
+  if(!name){alert('الرجاء كتابة اسم العنصر');return;}
+  // collect addons
+  const addons=[];
+  document.querySelectorAll('#addons-editor .addon-row-adm').forEach(row=>{
+    const n=row.querySelector('.ar-name-inp').value.trim();
+    const p=parseInt(row.querySelector('.ar-price-inp').value)||0;
+    if(n) addons.push({name:n,price:p});
+  });
+  const item={name,price:parseInt(document.getElementById('mi-price').value)||0,desc:document.getElementById('mi-desc').value.trim(),img:document.getElementById('mi-img').value.trim(),ft:document.getElementById('mi-featured').checked,addons};
+  if(idx>=0) DATA.menuData[cat].items[idx]=item;
+  else DATA.menuData[cat].items.push(item);
+  closeModal('modal-item');
+  renderMenu();
+  renderDashboard();
+  toast('✅ تم حفظ العنصر');
+}
+function deleteItem(cat,idx){if(confirm('حذف هذا العنصر نهائياً؟')){DATA.menuData[cat].items.splice(idx,1);renderMenu();renderDashboard();toast('🗑️ تم الحذف');}}
+
+// ══════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════
+function renderCategories(){
+  const list=document.getElementById('categories-list');
+  list.innerHTML=`<table><thead><tr><th>القسم</th><th>الإيموجي</th><th>العناصر</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>${
+    Object.entries(DATA.menuData).map(([cat,data])=>`
+    <tr>
+      <td><b>${cat}</b></td>
+      <td style="font-size:20px">${data.emoji}</td>
+      <td>${data.items.length}</td>
+      <td>${DATA.categories[cat]?.hidden?'<span style="color:var(--danger)">مخفي</span>':'<span style="color:var(--success)">ظاهر</span>'}</td>
+      <td>
+        <button class="btn btn-sm btn-ghost" onclick="toggleCatVisibility('${cat}')">${DATA.categories[cat]?.hidden?'👁️ إظهار':'🚫 إخفاء'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCategory('${cat}')">🗑️</button>
+      </td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+function toggleCatVisibility(cat){
+  if(!DATA.categories[cat]) DATA.categories[cat]={emoji:'🍽️',hidden:false};
+  DATA.categories[cat].hidden=!DATA.categories[cat].hidden;
+  renderCategories();
+  toast('✅ تم التحديث');
+}
+function deleteCategory(cat){
+  if(!confirm(`حذف قسم "${cat}" وكل عناصره؟`)) return;
+  delete DATA.menuData[cat];
+  delete DATA.categories[cat];
+  if(currentMenuCat===cat) currentMenuCat=Object.keys(DATA.menuData)[0]||'';
+  renderCategories();
+  renderMenu();
+  renderDashboard();
+  toast('🗑️ تم حذف القسم');
+}
+function openAddCategory(){
+  document.getElementById('mc-name').value='';
+  document.getElementById('mc-emoji').value='🍽️';
+  openModal('modal-cat');
+}
+function saveCategory(){
+  const name=document.getElementById('mc-name').value.trim();
+  const emoji=document.getElementById('mc-emoji').value||'🍽️';
+  if(!name){alert('اكتب اسم القسم');return;}
+  if(DATA.menuData[name]){alert('هذا القسم موجود مسبقاً');return;}
+  DATA.menuData[name]={emoji,items:[]};
+  DATA.categories[name]={emoji,hidden:false};
+  closeModal('modal-cat');
+  renderCategories();
+  renderMenu();
+  renderDashboard();
+  toast('✅ تم إضافة القسم');
+}
+
+// ══════════════════════════════════════
+// BRANCHES
+// ══════════════════════════════════════
+function renderBranches(){
+  const list=document.getElementById('branches-list');
+  list.innerHTML=DATA.branches.map((b,i)=>`
+    <div class="branch-card-adm">
+      <div class="bc-name">${b.name}</div>
+      <div class="bc-addr">📍 ${b.addr}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="bc-status ${b.status}">${b.status==='open'?'✅ مفتوح':b.status==='soon'?'🔜 قريباً':'🚫 مخفي'}</span>
+        <span style="font-size:11px;color:var(--muted)">${b.mapType||'osm'}</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-ghost" onclick="openEditBranch(${i})">✏️ تعديل</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBranch(${i})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+function openEditBranch(i){
+  const b=DATA.branches[i];
+  document.getElementById('mb-title').textContent='تعديل الفرع';
+  document.getElementById('mb-idx').value=i;
+  document.getElementById('mb-name').value=b.name;
+  document.getElementById('mb-addr').value=b.addr;
+  document.getElementById('mb-status').value=b.status||'open';
+  currentMapType=b.mapType||'osm';
+  document.getElementById('mb-map-val').value=b.mapVal||'';
+  document.getElementById('mb-lat').value=b.lat||'';
+  document.getElementById('mb-lng').value=b.lng||'';
+  updateMapTypeUI();
+  openModal('modal-branch');
+}
+function openAddBranch(){
+  document.getElementById('mb-title').textContent='إضافة فرع جديد';
+  document.getElementById('mb-idx').value=-1;
+  document.getElementById('mb-name').value='';
+  document.getElementById('mb-addr').value='';
+  document.getElementById('mb-status').value='open';
+  document.getElementById('mb-map-val').value='';
+  document.getElementById('mb-lat').value='';
+  document.getElementById('mb-lng').value='';
+  currentMapType='osm';
+  updateMapTypeUI();
+  openModal('modal-branch');
+}
+function selectMapType(t){currentMapType=t;updateMapTypeUI();}
+function updateMapTypeUI(){
+  ['osm','gmaps','coords','embed'].forEach(t=>{
+    document.getElementById('mopt-'+t)?.classList.toggle('active',t===currentMapType);
+  });
+  const labels={osm:'رابط OpenStreetMap embed',gmaps:'رابط Google Maps',embed:'رابط Embed (iframe src)',coords:''};
+  const isCoords=currentMapType==='coords';
+  document.getElementById('map-input-wrap').style.display=isCoords?'none':'block';
+  document.getElementById('coords-wrap').style.display=isCoords?'block':'none';
+  if(!isCoords) document.getElementById('map-input-label').textContent=labels[currentMapType]||'رابط الخريطة';
+}
+function saveBranch(){
+  const idx=parseInt(document.getElementById('mb-idx').value);
+  const b={
+    name:document.getElementById('mb-name').value.trim(),
+    addr:document.getElementById('mb-addr').value.trim(),
+    status:document.getElementById('mb-status').value,
+    mapType:currentMapType,
+    mapVal:document.getElementById('mb-map-val').value.trim(),
+    lat:document.getElementById('mb-lat').value.trim(),
+    lng:document.getElementById('mb-lng').value.trim(),
+  };
+  if(!b.name){alert('اكتب اسم الفرع');return;}
+  if(idx>=0) DATA.branches[idx]=b;
+  else DATA.branches.push(b);
+  closeModal('modal-branch');
+  renderBranches();
+  renderDashboard();
+  toast('✅ تم حفظ الفرع');
+}
+function deleteBranch(i){if(confirm('حذف هذا الفرع؟')){DATA.branches.splice(i,1);renderBranches();renderDashboard();toast('🗑️ تم الحذف');}}
+
+// ══════════════════════════════════════
+// DELIVERY
+// ══════════════════════════════════════
+function fillDeliveryForm(){
+  document.getElementById('del-fee').value=DATA.delivery.fee;
+  document.getElementById('del-free-threshold').value=DATA.delivery.freeThreshold;
+  document.getElementById('del-free-msg').value=DATA.delivery.freemsg;
+  document.getElementById('manual-location-toggle').checked=DATA.delivery.manualLocation;
+  document.getElementById('manual-loc-placeholder').value=DATA.delivery.manualPlaceholder;
+  renderDeliveryZones();
+}
+function renderDeliveryZones(){
+  const list=document.getElementById('delivery-zones-list');
+  list.innerHTML=DATA.delivery.zones.map((z,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <input class="form-input" style="flex:1" value="${z.name}" id="dz-name-${i}" placeholder="اسم المنطقة">
+      <input class="form-input" style="width:130px" type="number" value="${z.fee}" id="dz-fee-${i}" placeholder="رسوم IQD">
+      <button class="btn btn-sm btn-danger" onclick="deleteZone(${i})">✕</button>
+    </div>`).join('');
+}
+function addDeliveryZone(){DATA.delivery.zones.push({name:'منطقة جديدة',fee:3000});renderDeliveryZones();}
+function deleteZone(i){DATA.delivery.zones.splice(i,1);renderDeliveryZones();}
+function saveDelivery(){
+  DATA.delivery.fee=parseInt(document.getElementById('del-fee').value)||0;
+  DATA.delivery.freeThreshold=parseInt(document.getElementById('del-free-threshold').value)||0;
+  DATA.delivery.freemsg=document.getElementById('del-free-msg').value;
+  DATA.delivery.manualLocation=document.getElementById('manual-location-toggle').checked;
+  DATA.delivery.manualPlaceholder=document.getElementById('manual-loc-placeholder').value;
+  // save zones
+  DATA.delivery.zones=[];
+  DATA.delivery.zones=Array.from({length:document.querySelectorAll('[id^="dz-name-"]').length}).map((_,i)=>({
+    name:document.getElementById('dz-name-'+i)?.value||'',
+    fee:parseInt(document.getElementById('dz-fee-'+i)?.value)||0
+  })).filter(z=>z.name);
+  toast('✅ تم حفظ إعدادات التوصيل');
+}
+
+// ══════════════════════════════════════
+// WHATSAPP
+// ══════════════════════════════════════
+function fillWhatsapp(){
+  document.getElementById('wa-number').value=DATA.whatsapp.number;
+  document.getElementById('wa-type').value=DATA.whatsapp.type;
+  document.getElementById('wa-template').value=DATA.whatsapp.template;
+  document.getElementById('success-msg').value=DATA.whatsapp.successMsg;
+  document.getElementById('auto-wa-toggle').checked=DATA.whatsapp.autoSend;
+  refreshWaPreview();
+}
+function refreshWaPreview(){
+  const tpl=document.getElementById('wa-template').value;
+  const preview=tpl
+    .replace(/{رقم_الطلب}/g,'#1042')
+    .replace(/{الاسم}/g,'أحمد الكريم')
+    .replace(/{الهاتف}/g,'07801234567')
+    .replace(/{نوع_التوصيل}/g,'توصيل للمنزل')
+    .replace(/{العنوان}/g,'كربلاء، حي العسكري، شارع 5، بيت 22')
+    .replace(/{العناصر}/g,'• شاورما دجاج × 2 — IQD 9,000\n• فريز مقلية × 1 — IQD 2,500')
+    .replace(/{المجموع}/g,'IQD 11,500')
+    .replace(/{رسوم_التوصيل}/g,'IQD 2,000')
+    .replace(/{الإجمالي}/g,'IQD 13,500')
+    .replace(/{ملاحظات}/g,'بدون بصل');
+  document.getElementById('wa-preview-box').textContent=preview;
+}
+function saveWhatsapp(){
+  DATA.whatsapp.number=document.getElementById('wa-number').value;
+  DATA.whatsapp.type=document.getElementById('wa-type').value;
+  DATA.whatsapp.template=document.getElementById('wa-template').value;
+  DATA.whatsapp.successMsg=document.getElementById('success-msg').value;
+  DATA.whatsapp.autoSend=document.getElementById('auto-wa-toggle').checked;
+  refreshWaPreview();
+  toast('✅ تم حفظ إعدادات الواتساب');
+}
+
+// ══════════════════════════════════════
+// IDENTITY
+// ══════════════════════════════════════
+function fillIdentity(){
+  document.getElementById('main-phone').value=DATA.identity.phone;
+  document.getElementById('main-email').value=DATA.identity.email;
+  document.getElementById('social-ig').value=DATA.identity.ig;
+  document.getElementById('social-fb').value=DATA.identity.fb;
+  document.getElementById('social-tt').value=DATA.identity.tt;
+  document.getElementById('social-snap').value=DATA.identity.snap;
+  document.getElementById('discount-code').value=DATA.discount.code;
+  document.getElementById('discount-pct').value=DATA.discount.pct;
+  document.getElementById('discount-active').checked=DATA.discount.active;
+}
+function saveIdentity(){
+  DATA.identity.phone=document.getElementById('main-phone').value;
+  DATA.identity.email=document.getElementById('main-email').value;
+  DATA.identity.ig=document.getElementById('social-ig').value;
+  DATA.identity.fb=document.getElementById('social-fb').value;
+  DATA.identity.tt=document.getElementById('social-tt').value;
+  DATA.identity.snap=document.getElementById('social-snap').value;
+  toast('✅ تم حفظ معلومات التواصل');
+}
+function saveDiscount(){
+  DATA.discount.code=document.getElementById('discount-code').value;
+  DATA.discount.pct=parseInt(document.getElementById('discount-pct').value)||0;
+  DATA.discount.active=document.getElementById('discount-active').checked;
+  toast('✅ تم حفظ كود الخصم');
+}
+
+// ══════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-ov').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+</script>
+<script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+      apiKey: "AIzaSyAVUS1vCKGzSUGfb8MnpNQZsXI0z0-7mvg",
+
+  authDomain: "mualm-shawarma.firebaseapp.com",
+
+  projectId: "mualm-shawarma",
+
+  storageBucket: "mualm-shawarma.firebasestorage.app",
+
+  messagingSenderId: "416225773599",
+
+  appId: "1:416225773599:web:6d7c6221e7839dec0a2d2a",
+
+  measurementId: "G-MQCLFZ8J77"
+
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.db = getFirestore(app);
+    </script>
+</body>
+</html>
+</body>
+</html>
