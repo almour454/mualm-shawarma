@@ -1472,7 +1472,9 @@ function toast(msg){
   // Global functions to write data to Firestore
   window.saveSettingsToFirebase = async (data) => {
     try {
-      await setDoc(settingsDoc, data, { merge: true });
+      // CRITICAL: Remove menuData from settings - it's saved separately in menu collection
+      const { menuData, ...settingsOnly } = data;
+      await setDoc(settingsDoc, settingsOnly, { merge: true });
       if (typeof toast === 'function') toast('✅ تم الحفظ في قاعدة البيانات');
     } catch (e) {
       console.error(e);
