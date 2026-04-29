@@ -1159,11 +1159,11 @@ function markDone(id){const o=orders.find(x=>x.id===id);if(o)o.status='done';bui
 setDel('delivery');
 </script>
 <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, doc, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      const firebaseConfig = {
-      apiKey: "AIzaSyAVUS1vCKGzSUGfb8MnpNQZsXI0z0-7mvg",
+  const firebaseConfig = {
+        apiKey: "AIzaSyAVUS1vCKGzSUGfb8MnpNQZsXI0z0-7mvg",
 
   authDomain: "mualm-shawarma.firebaseapp.com",
 
@@ -1181,8 +1181,49 @@ setDel('delivery');
 
       const app = initializeApp(firebaseConfig);
       window.db = getFirestore(app);
-    </script>
-</body>
-</html>
+  const appId = 'karbala-burger-pro-v1';
+  const menuCol = collection(db, 'artifacts', appId, 'public', 'data', 'menu');
+  const settingsDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+  
+  // Calculate business day (Orders before 4 AM belong to the previous day)
+  const getDateStr = () => {
+    const now = new Date();
+    if (now.getHours() < 4) now.setDate(now.getDate() - 1);
+    return now.toLocaleDateString('en-CA');
+  };
+  const ordersCol = collection(db, 'artifacts', appId, 'private', 'data', 'orders', getDateStr(), 'items');
+
+  // Real-time listener for Settings
+  onSnapshot(settingsDoc, (docSnap) => {
+    if (docSnap.exists()) {
+      window.SITE_DATA = { ...window.SITE_DATA, ...docSnap.data() };
+      if (typeof renderAll === 'function') renderAll();
+    }
+  });
+
+  // Real-time listener for Menu
+  onSnapshot(menuCol, (snap) => {
+    const menuData = {};
+    snap.forEach(d => menuData[d.id] = d.data());
+    window.SITE_DATA = window.SITE_DATA || {};
+    window.SITE_DATA.menu = menuData;
+    if (typeof renderAll === 'function') renderAll();
+  });
+
+  // Expose global function to submit orders to Firestore
+  window.submitOrderToFirebase = async (orderData) => {
+    try {
+      await addDoc(ordersCol, {
+        ...orderData,
+        createdAt: serverTimestamp(),
+        status: 'new'
+      });
+      return true;
+    } catch (e) {
+      console.error("Order submission failed:", e);
+      return false;
+    }
+  };
+</script>
 </body>
 </html>

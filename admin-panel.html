@@ -1373,11 +1373,11 @@ function toast(msg){
 }
 </script>
 <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      const firebaseConfig = {
-      apiKey: "AIzaSyAVUS1vCKGzSUGfb8MnpNQZsXI0z0-7mvg",
+  const firebaseConfig = {
+     apiKey: "AIzaSyAVUS1vCKGzSUGfb8MnpNQZsXI0z0-7mvg",
 
   authDomain: "mualm-shawarma.firebaseapp.com",
 
@@ -1394,9 +1394,84 @@ function toast(msg){
       };
 
       const app = initializeApp(firebaseConfig);
-      window.db = getFirestore(app);
-    </script>
-</body>
-</html>
+      const db = getFirestore(app);
+      window.db = db;
+
+  const appId = 'karbala-burger-pro-v1';
+  const menuCol = collection(db, 'artifacts', appId, 'public', 'data', 'menu');
+  const settingsDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+
+  const getDateStr = () => {
+    const now = new Date();
+    if (now.getHours() < 4) now.setDate(now.getDate() - 1);
+    return now.toLocaleDateString('en-CA');
+  };
+  const ordersCol = collection(db, 'artifacts', appId, 'private', 'data', 'orders', getDateStr(), 'items');
+
+  // Real-time listener for Settings
+  onSnapshot(settingsDoc, (s) => {
+    if (s.exists()) {
+      window.DATA = { ...window.DATA, ...s.data() };
+      if (typeof loadDataIntoInputs === 'function') loadDataIntoInputs();
+      if (typeof renderAll === 'function') renderAll();
+    }
+  });
+
+  // Real-time listener for Menu
+  onSnapshot(menuCol, (snap) => {
+    const menuData = {};
+    snap.forEach(d => menuData[d.id] = d.data());
+    window.DATA = window.DATA || {};
+    window.DATA.menu = menuData;
+    if (typeof renderAll === 'function') renderAll();
+  });
+
+  // Real-time listener for Orders (Kitchen View)
+  onSnapshot(ordersCol, (snap) => {
+    const ordersData = [];
+    snap.forEach(d => ordersData.push({ id: d.id, ...d.data() }));
+    window.orders = ordersData;
+    if (typeof buildKitchen === 'function') buildKitchen();
+  });
+
+  // Global functions to write data to Firestore
+  window.saveSettingsToFirebase = async (data) => {
+    try {
+      await setDoc(settingsDoc, data, { merge: true });
+      if (typeof toast === 'function') toast('✅ تم الحفظ في قاعدة البيانات');
+    } catch (e) {
+      console.error(e);
+      if (typeof toast === 'function') toast('❌ خطأ في الحفظ');
+    }
+  };
+
+  window.saveMenuItemToFirebase = async (itemId, itemData) => {
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menu', itemId), itemData);
+      if (typeof toast === 'function') toast('✅ تم حفظ العنصر');
+    } catch (e) {
+      console.error(e);
+      if (typeof toast === 'function') toast('❌ خطأ في الحفظ');
+    }
+  };
+
+  window.deleteMenuItemFromFirebase = async (itemId) => {
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menu', itemId));
+      if (typeof toast === 'function') toast('✅ تم الحذف');
+    } catch (e) {
+      console.error(e);
+      if (typeof toast === 'function') toast('❌ خطأ في الحذف');
+    }
+  };
+
+  window.updateOrderStatusInFirebase = async (orderId, status) => {
+      try {
+          await updateDoc(doc(db, 'artifacts', appId, 'private', 'data', 'orders', getDateStr(), 'items', orderId), { status });
+      } catch (e) {
+          console.error(e);
+      }
+  };
+</script>
 </body>
 </html>
