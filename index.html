@@ -909,6 +909,20 @@ const fmt=n=>'IQD '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFra
 // emoji map for overlay
 const EMOJIS={"شاورما دجاج":"🥙","شاورما لحم":"🥩","برغر":"🍔","سندويشات المعلم":"🥪","بيتزا المعلم":"🍕","ريزو المعلم":"🍚","المقبلات":"🍟"};
 
+function getMenuData(){
+  return window.SITE_DATA?.menu || MD;
+}
+function getMenuCats(){
+  return Object.keys(getMenuData());
+}
+function getMenuItem(cat, idx){
+  const catData = getMenuData()[cat];
+  return catData?.items?.[idx] || null;
+}
+function renderAll(){
+  if (typeof buildMenu === 'function') buildMenu();
+}
+
 // ── MENU ──
 function openMenu(branch){
   document.getElementById('pop-branch').textContent='فرع '+branch;
@@ -920,6 +934,8 @@ function closeMenu(){document.getElementById('menu-ov').classList.remove('open')
 function closeMenuOv(e){if(e.target===document.getElementById('menu-ov'))closeMenu();}
 
 function buildMenu(){
+  const menuData = getMenuData();
+  const cats = getMenuCats();
   const cb=document.getElementById('cats-bar'),ms=document.getElementById('m-scroll');
   cb.innerHTML='';ms.innerHTML='';
 
@@ -934,9 +950,9 @@ function buildMenu(){
   };
   cb.appendChild(allPill);
 
-  CATS.forEach((cat,i)=>{
-    const catData=MD[cat];
-    const items=catData.items;
+  cats.forEach((cat,i)=>{
+    const catData=menuData[cat];
+    const items=catData?.items || [];
 
     // pill
     const pill=document.createElement('button');
@@ -949,7 +965,7 @@ function buildMenu(){
     };
     cb.appendChild(pill);
 
-    if(!items||!items.length)return;
+    if(!items.length) return;
     const sec=document.createElement('div');
     sec.className='cat-sec';sec.id='s'+i;
     sec.innerHTML=`<div class="cat-ttl"><span class="cat-ttl-emoji">${catData.emoji}</span>${cat}</div>`;
@@ -958,7 +974,6 @@ function buildMenu(){
     items.forEach((item,j)=>{
       const em=EMOJIS[cat]||'🍽️';
       if(item.ft&&j===0){
-        // featured wide card
         const el=document.createElement('div');
         el.className='ft-wrap';
         el.innerHTML=`
@@ -1006,7 +1021,7 @@ function buildMenu(){
   // Update active pill on scroll
   ms.addEventListener('scroll',()=>{
     let activeIdx=-1;
-    CATS.forEach((_,i)=>{
+    cats.forEach((_,i)=>{
       const el=document.getElementById('s'+i);
       if(el&&el.getBoundingClientRect().top-ms.getBoundingClientRect().top<80) activeIdx=i;
     });
@@ -1019,7 +1034,9 @@ function buildMenu(){
 
 // ── ITEM SHEET ──
 function openItem(cat,idx){
-  curItem={...MD[cat].items[idx],cat,idx};curQty=1;curAddons=[];
+  const item = getMenuItem(cat, idx);
+  if(!item) return;
+  curItem={...item,cat,idx};curQty=1;curAddons=[];
   document.getElementById('sh-title').textContent=curItem.name;
   document.getElementById('sh-sub').textContent=curItem.desc||curItem.name;
   const ab=document.getElementById('sh-addons'),al=document.getElementById('sh-addon-list');
@@ -1180,7 +1197,8 @@ setDel('delivery');
       };
 
       const app = initializeApp(firebaseConfig);
-      window.db = getFirestore(app);
+      const db = getFirestore(app);
+      window.db = db;
   const appId = 'karbala-burger-pro-v1';
   const menuCol = collection(db, 'artifacts', appId, 'public', 'data', 'menu');
   const settingsDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
