@@ -877,7 +877,7 @@ let currentMenuCat = '';
 // ══════════════════════════════════════
 // LOGIN
 // ══════════════════════════════════════
-const ADMIN_CREDS = {admin:'admin123', kitchen:'1234', owner:'maalim2026'};
+const ADMIN_CREDS = {admin1999:'1999k1999', admin12678:'shawarma12678'};
 let isOwner = false;
 function doAdminLogin(){
   const u=document.getElementById('li-user').value.trim();
@@ -885,7 +885,7 @@ function doAdminLogin(){
   const err=document.getElementById('li-err');
   if(ADMIN_CREDS[u]&&ADMIN_CREDS[u]===p){
     err.style.display='none';
-    isOwner = (u === 'owner'); // Set owner flag
+    isOwner = (u === 'admin1999'); // Your account has full access
     document.getElementById('login-screen').style.display='none';
     document.getElementById('admin-root').style.display='flex';
     initAdmin();
