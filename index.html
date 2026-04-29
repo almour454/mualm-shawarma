@@ -1136,11 +1136,82 @@ function confirmOrder(){
   if(!name||!phone){alert('الرجاء إدخال الاسم ورقم الهاتف');return;}
   const fee=delMode==='delivery'?FEE:0;
   const sub=cart.reduce((s,i)=>s+i.total,0);
-  orders.push({id:oNum++,name,phone,address:document.getElementById('f-addr').value,notes:document.getElementById('f-notes').value,delivery:delMode,items:[...cart],subtotal:sub,fee,total:sub+fee,status:'new',time:new Date().toLocaleTimeString('ar-IQ')});
-  cart=[];updCart();
+  const addr=document.getElementById('f-addr').value.trim();
+  const notes=document.getElementById('f-notes').value.trim();
+  
+  // Build order object
+  const order={
+    id:oNum++,
+    name,
+    phone,
+    address:addr,
+    notes,
+    delivery:delMode,
+    items:[...cart],
+    subtotal:sub,
+    fee,
+    total:sub+fee,
+    status:'new',
+    time:new Date().toLocaleTimeString('ar-IQ')
+  };
+  
+  orders.push(order);
+  cart=[];
+  updCart();
+  
+  // Save to Firebase
+  if(typeof window.submitOrderToFirebase === 'function'){
+    window.submitOrderToFirebase(order).catch(err => {
+      console.error('Failed to save order to Firebase:', err);
+    });
+  }
+  
+  // Send to WhatsApp
+  sendToWhatsApp(order);
+  
   document.getElementById('pg-co').style.display='none';
   document.getElementById('pg-suc').style.display='flex';
   document.body.style.overflow='hidden';
+}
+
+function sendToWhatsApp(order){
+  // Get WhatsApp settings from SITE_DATA or use defaults
+  const waSettings = window.SITE_DATA?.whatsapp || {
+    number: '9647811633663',
+    template: '🥙 *طلب جديد من معلم الشاورما*\n━━━━━━━━━━━━━━━━\n📋 *رقم الطلب:* #{رقم_الطلب}\n👤 *الاسم:* {الاسم}\n📞 *الهاتف:* {الهاتف}\n🚗 *نوع التوصيل:* {نوع_التوصيل}\n📍 *العنوان:* {العنوان}\n━━━━━━━━━━━━━━━━\n🛒 *الطلبات:*\n{العناصر}\n━━━━━━━━━━━━━━━━\n💰 المجموع: {المجموع}\n🚗 رسوم التوصيل: {رسوم_التوصيل}\n💵 *الإجمالي: {الإجمالي}*\n📝 ملاحظات: {ملاحظات}\n━━━━━━━━━━━━━━━━\n✅ الرجاء التأكيد والتحضير'
+  };
+  
+  // Format items list
+  const itemsList = order.items.map(item => {
+    let line = `• ${item.name} × ${item.qty}`;
+    if(item.selectedAddons && item.selectedAddons.length > 0){
+      const addonsText = item.selectedAddons.map(a => a.name).join(', ');
+      line += ` (${addonsText})`;
+    }
+    line += ` = ${fmt(item.total)}`;
+    return line;
+  }).join('\n');
+  
+  // Build message from template
+  let message = waSettings.template;
+  message = message.replace('{رقم_الطلب}', order.id);
+  message = message.replace('{الاسم}', order.name);
+  message = message.replace('{الهاتف}', order.phone);
+  message = message.replace('{نوع_التوصيل}', order.delivery === 'delivery' ? 'توصيل 🚗' : 'استلام من الفرع 🏪');
+  message = message.replace('{العنوان}', order.delivery === 'delivery' ? order.address : 'استلام من الفرع');
+  message = message.replace('{العناصر}', itemsList);
+  message = message.replace('{المجموع}', fmt(order.subtotal));
+  message = message.replace('{رسوم_التوصيل}', fmt(order.fee));
+  message = message.replace('{الإجمالي}', fmt(order.total));
+  message = message.replace('{ملاحظات}', order.notes || 'لا توجد');
+  
+  // Open WhatsApp
+  const waNumber = waSettings.number;
+  const encodedMessage = encodeURIComponent(message);
+  const waLink = `https://wa.me/${waNumber}?text=${encodedMessage}`;
+  
+  // Open in new window
+  window.open(waLink, '_blank');
 }
 function resetAll(){document.getElementById('pg-suc').style.display='none';document.body.style.overflow='';}
 
@@ -1254,6 +1325,7 @@ setDel('delivery');
         price: itemData.price,
         ft: itemData.ft,
         bg: itemData.bg,
+        hidden: itemData.hidden || false,
         addons: itemData.addons || []
       });
     });
