@@ -1116,8 +1116,11 @@ function saveItem(){
   // Save to Firestore
   const itemId = cat + '_' + name.replace(/\s+/g, '_');
   const itemData = { ...item, category: cat, emoji: DATA.menuData[cat].emoji };
+  console.log('Calling Firestore save with:', { itemId, itemData });
   if(typeof window.saveMenuItemToFirebase === 'function') {
     window.saveMenuItemToFirebase(itemId, itemData);
+  } else {
+    console.error('saveMenuItemToFirebase is not a function!');
   }
 }
 function deleteItem(cat,idx){
