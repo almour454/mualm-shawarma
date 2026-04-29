@@ -961,7 +961,7 @@ function openEditTicker(i){
   document.getElementById('mt-badge').value=t.badge||'';
   openModal('modal-ticker');
 }
-function saveTicker(){
+async function saveTicker(){
   const t={icon:document.getElementById('mt-icon').value||'★', text:document.getElementById('mt-text').value.trim(), badge:document.getElementById('mt-badge').value.trim()};
   if(!t.text){alert('الرجاء كتابة نص الرسالة');return;}
   if(editingTickerIdx>=0) DATA.tickerItems[editingTickerIdx]=t;
@@ -970,23 +970,26 @@ function saveTicker(){
   closeModal('modal-ticker');
   renderTicker();
   renderDashboard();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ رسالة الشريط');
 }
-function deleteTicker(i){if(confirm('حذف هذه الرسالة؟')){DATA.tickerItems.splice(i,1);renderTicker();renderDashboard();toast('🗑️ تم الحذف');}}
-function moveTicker(i,dir){const a=DATA.tickerItems;[a[i],a[i+dir]]=[a[i+dir],a[i]];renderTicker();}
+async function deleteTicker(i){if(confirm('حذف هذه الرسالة؟')){DATA.tickerItems.splice(i,1);renderTicker();renderDashboard();if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);toast('🗑️ تم الحذف');}}
+async function moveTicker(i,dir){const a=DATA.tickerItems;[a[i],a[i+dir]]=[a[i+dir],a[i]];renderTicker();if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);}
 
 // ══════════════════════════════════════
 // HERO
 // ══════════════════════════════════════
-function saveHero(){
+async function saveHero(){
   DATA.hero.title=document.getElementById('hero-title').value;
   DATA.hero.sub=document.getElementById('hero-sub').value;
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ بيانات الهيرو');
 }
-function saveDeliveryInfo(){
+async function saveDeliveryInfo(){
   DATA.delivery.phone=document.getElementById('del-phone').value;
   DATA.delivery.title=document.getElementById('del-title').value;
   DATA.delivery.sub=document.getElementById('del-sub').value;
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ بيانات التوصيل');
 }
 
@@ -1014,12 +1017,13 @@ function renderFeatures(){
       </div>
     </div>`).join('');
 }
-function saveFeatures(){
+async function saveFeatures(){
   DATA.features.forEach((f,i)=>{
     f.icon=document.getElementById('feat-icon-'+i).value;
     f.title=document.getElementById('feat-title-'+i).value;
     f.desc=document.getElementById('feat-desc-'+i).value;
   });
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ المميزات');
 }
 
@@ -1157,13 +1161,14 @@ function renderCategories(){
     </tr>`).join('')
   }</tbody></table>`;
 }
-function toggleCatVisibility(cat){
+async function toggleCatVisibility(cat){
   if(!DATA.categories[cat]) DATA.categories[cat]={emoji:'🍽️',hidden:false};
   DATA.categories[cat].hidden=!DATA.categories[cat].hidden;
   renderCategories();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم التحديث');
 }
-function deleteCategory(cat){
+async function deleteCategory(cat){
   if(!confirm(`حذف قسم "${cat}" وكل عناصره؟`)) return;
   delete DATA.menuData[cat];
   delete DATA.categories[cat];
@@ -1171,6 +1176,7 @@ function deleteCategory(cat){
   renderCategories();
   renderMenu();
   renderDashboard();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('🗑️ تم حذف القسم');
 }
 function openAddCategory(){
@@ -1178,7 +1184,7 @@ function openAddCategory(){
   document.getElementById('mc-emoji').value='🍽️';
   openModal('modal-cat');
 }
-function saveCategory(){
+async function saveCategory(){
   const name=document.getElementById('mc-name').value.trim();
   const emoji=document.getElementById('mc-emoji').value||'🍽️';
   if(!name){alert('اكتب اسم القسم');return;}
@@ -1189,6 +1195,7 @@ function saveCategory(){
   renderCategories();
   renderMenu();
   renderDashboard();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم إضافة القسم');
 }
 
@@ -1249,7 +1256,7 @@ function updateMapTypeUI(){
   document.getElementById('coords-wrap').style.display=isCoords?'block':'none';
   if(!isCoords) document.getElementById('map-input-label').textContent=labels[currentMapType]||'رابط الخريطة';
 }
-function saveBranch(){
+async function saveBranch(){
   const idx=parseInt(document.getElementById('mb-idx').value);
   const b={
     name:document.getElementById('mb-name').value.trim(),
@@ -1266,9 +1273,10 @@ function saveBranch(){
   closeModal('modal-branch');
   renderBranches();
   renderDashboard();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ الفرع');
 }
-function deleteBranch(i){if(confirm('حذف هذا الفرع؟')){DATA.branches.splice(i,1);renderBranches();renderDashboard();toast('🗑️ تم الحذف');}}
+async function deleteBranch(i){if(confirm('حذف هذا الفرع؟')){DATA.branches.splice(i,1);renderBranches();renderDashboard();if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);toast('🗑️ تم الحذف');}}
 
 // ══════════════════════════════════════
 // DELIVERY
@@ -1292,7 +1300,7 @@ function renderDeliveryZones(){
 }
 function addDeliveryZone(){DATA.delivery.zones.push({name:'منطقة جديدة',fee:3000});renderDeliveryZones();}
 function deleteZone(i){DATA.delivery.zones.splice(i,1);renderDeliveryZones();}
-function saveDelivery(){
+async function saveDelivery(){
   DATA.delivery.fee=parseInt(document.getElementById('del-fee').value)||0;
   DATA.delivery.freeThreshold=parseInt(document.getElementById('del-free-threshold').value)||0;
   DATA.delivery.freemsg=document.getElementById('del-free-msg').value;
@@ -1304,6 +1312,7 @@ function saveDelivery(){
     name:document.getElementById('dz-name-'+i)?.value||'',
     fee:parseInt(document.getElementById('dz-fee-'+i)?.value)||0
   })).filter(z=>z.name);
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ إعدادات التوصيل');
 }
 
@@ -1333,13 +1342,14 @@ function refreshWaPreview(){
     .replace(/{ملاحظات}/g,'بدون بصل');
   document.getElementById('wa-preview-box').textContent=preview;
 }
-function saveWhatsapp(){
+async function saveWhatsapp(){
   DATA.whatsapp.number=document.getElementById('wa-number').value;
   DATA.whatsapp.type=document.getElementById('wa-type').value;
   DATA.whatsapp.template=document.getElementById('wa-template').value;
   DATA.whatsapp.successMsg=document.getElementById('success-msg').value;
   DATA.whatsapp.autoSend=document.getElementById('auto-wa-toggle').checked;
   refreshWaPreview();
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ إعدادات الواتساب');
 }
 
@@ -1357,19 +1367,21 @@ function fillIdentity(){
   document.getElementById('discount-pct').value=DATA.discount.pct;
   document.getElementById('discount-active').checked=DATA.discount.active;
 }
-function saveIdentity(){
+async function saveIdentity(){
   DATA.identity.phone=document.getElementById('main-phone').value;
   DATA.identity.email=document.getElementById('main-email').value;
   DATA.identity.ig=document.getElementById('social-ig').value;
   DATA.identity.fb=document.getElementById('social-fb').value;
   DATA.identity.tt=document.getElementById('social-tt').value;
   DATA.identity.snap=document.getElementById('social-snap').value;
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ معلومات التواصل');
 }
-function saveDiscount(){
+async function saveDiscount(){
   DATA.discount.code=document.getElementById('discount-code').value;
   DATA.discount.pct=parseInt(document.getElementById('discount-pct').value)||0;
   DATA.discount.active=document.getElementById('discount-active').checked;
+  if(typeof window.saveSettingsToFirebase === 'function') await window.saveSettingsToFirebase(DATA);
   toast('✅ تم حفظ كود الخصم');
 }
 
