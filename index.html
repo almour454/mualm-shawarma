@@ -1170,7 +1170,9 @@ function markDone(id){const o=orders.find(x=>x.id===id);if(o)o.status='done';bui
 
 setDel('delivery');
 </script>
+<!-- Firebase CDN -->
 <script type="module">
+  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, doc, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1194,6 +1196,7 @@ setDel('delivery');
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       window.db = db;
+      console.log('Firebase initialized successfully in index.html');
   const appId = 'mualm-shawarma';
   const menuCol = collection(db, 'artifacts', appId, 'public', 'data', 'menu');
   const settingsDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');

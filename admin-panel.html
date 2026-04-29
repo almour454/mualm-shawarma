@@ -1418,6 +1418,7 @@ function toast(msg){
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       window.db = db;
+      console.log('Firebase initialized successfully in admin-panel.html');
 
   const appId = 'mualm-shawarma';
   const menuCol = collection(db, 'artifacts', appId, 'public', 'data', 'menu');
